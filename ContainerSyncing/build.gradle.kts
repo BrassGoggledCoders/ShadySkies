@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "xyz.brassgoggledcoders.shadyskies"
-version = "1.0.2"
+version = "1.1.0"
 
 java {
     toolchain {
@@ -23,12 +23,12 @@ dependencies {
     "minecraft"(
         group = "net.minecraftforge",
         name = "forge",
-        version = "1.18.2-40.1.84"
+        version = "1.19.2-43.2.0"
     )
 }
 
 minecraft {
-    mappings("parchment", "2022.03.13-1.18.2")
+    mappings("parchment", "2022.11.27-1.19.2")
 
     runs {
 

@@ -41,7 +41,7 @@ public class UpdateClientContainerPropertiesPacket {
         }
     }
 
-    public boolean consume(Supplier<NetworkEvent.Context> contextSupplier) {
+    public void consume(Supplier<NetworkEvent.Context> contextSupplier) {
         contextSupplier.get().enqueueWork(() -> {
             LocalPlayer playerEntity = Minecraft.getInstance().player;
             if (playerEntity != null && playerEntity.containerMenu instanceof IPropertyManaged propertyManaged) {
@@ -55,7 +55,6 @@ public class UpdateClientContainerPropertiesPacket {
                 ContainerSyncing.getLogger().info("Container is not instance of IPropertyManaged");
             }
         });
-        return true;
     }
 
     public static UpdateClientContainerPropertiesPacket decode(FriendlyByteBuf packetBuffer) {

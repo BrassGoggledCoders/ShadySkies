@@ -34,7 +34,7 @@ public class ContainerSyncing {
             ContainerSyncing.simpleChannel.messageBuilder(UpdateClientContainerPropertiesPacket.class, 0)
                     .encoder(UpdateClientContainerPropertiesPacket::encode)
                     .decoder(UpdateClientContainerPropertiesPacket::decode)
-                    .consumer(UpdateClientContainerPropertiesPacket::consume)
+                    .consumerMainThread(UpdateClientContainerPropertiesPacket::consume)
                     .add();
         } else {
             throw new IllegalStateException("ContainerSync#set already called");
