@@ -23,6 +23,7 @@ public class PropertyTypes {
             FriendlyByteBuf::writeDouble);
     public static PropertyType<CompoundTag> COMPOUND_TAG = addType("compound_tag", CompoundTag.class, FriendlyByteBuf::readNbt,
             FriendlyByteBuf::writeNbt);
+    public static PropertyType<String> STRING = addType("string", String.class, FriendlyByteBuf::readUtf, FriendlyByteBuf::writeUtf);
 
     public static <T> PropertyType<T> addType(String name, Class<T> tClass, Function<FriendlyByteBuf, T> reader,
                                               BiConsumer<FriendlyByteBuf, T> writer) {

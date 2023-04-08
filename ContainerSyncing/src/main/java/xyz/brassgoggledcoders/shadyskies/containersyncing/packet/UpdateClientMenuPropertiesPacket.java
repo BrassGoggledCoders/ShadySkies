@@ -5,7 +5,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.apache.commons.lang3.tuple.Triple;
-import xyz.brassgoggledcoders.shadyskies.containersyncing.ContainerSyncing;
 import xyz.brassgoggledcoders.shadyskies.containersyncing.property.IPropertyManaged;
 import xyz.brassgoggledcoders.shadyskies.containersyncing.property.PropertyManager;
 import xyz.brassgoggledcoders.shadyskies.containersyncing.property.PropertyType;
@@ -15,11 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class UpdateClientContainerPropertiesPacket {
+public class UpdateClientMenuPropertiesPacket {
     private final short menuId;
     private final List<Triple<PropertyType<?>, Short, Object>> updates;
 
-    public UpdateClientContainerPropertiesPacket(short menuId, List<Triple<PropertyType<?>, Short, Object>> updates) {
+    public UpdateClientMenuPropertiesPacket(short menuId, List<Triple<PropertyType<?>, Short, Object>> updates) {
         this.menuId = menuId;
         this.updates = updates;
     }
@@ -51,13 +50,11 @@ public class UpdateClientContainerPropertiesPacket {
                         propertyManager.update(update.getLeft(), update.getMiddle(), update.getRight());
                     }
                 }
-            } else {
-                ContainerSyncing.getLogger().info("Container is not instance of IPropertyManaged");
             }
         });
     }
 
-    public static UpdateClientContainerPropertiesPacket decode(FriendlyByteBuf packetBuffer) {
+    public static UpdateClientMenuPropertiesPacket decode(FriendlyByteBuf packetBuffer) {
         short windowId = packetBuffer.readShort();
         short updateAmount = packetBuffer.readShort();
         List<Triple<PropertyType<?>, Short, Object>> updates = new ArrayList<>();
@@ -67,6 +64,6 @@ public class UpdateClientContainerPropertiesPacket {
             Object object = propertyType.getReader().apply(packetBuffer);
             updates.add(Triple.of(propertyType, propertyLocation, object));
         }
-        return new UpdateClientContainerPropertiesPacket(windowId, updates);
+        return new UpdateClientMenuPropertiesPacket(windowId, updates);
     }
 }

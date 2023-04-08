@@ -62,8 +62,6 @@ public class PropertyType<T> implements Comparable<PropertyType<?>> {
     public void attemptWrite(FriendlyByteBuf packetBuffer, Object object) {
         if (tClass.isInstance(object)) {
             this.getWriter().accept(packetBuffer, tClass.cast(object));
-        } else {
-            ContainerSyncing.getLogger().error("Attempted to Write with Invalid Object.");
         }
     }
 
@@ -73,8 +71,8 @@ public class PropertyType<T> implements Comparable<PropertyType<?>> {
             if (tClass.isInstance(object)) {
                 try {
                     ((Property<T>) property).set(tClass.cast(object));
-                } catch (ClassCastException classCastException) {
-                    ContainerSyncing.getLogger().error("Failed to Set Container Property", classCastException);
+                } catch (ClassCastException ignored) {
+
                 }
             }
         }
