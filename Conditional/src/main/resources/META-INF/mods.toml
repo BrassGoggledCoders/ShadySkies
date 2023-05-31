@@ -1,0 +1,13 @@
+modLoader = "javafml"
+loaderVersion = "[42,)"
+issueTrackerURL = "https://github.com/BrassGoggledCoders/ShadySkies/issues"
+license="MIT"
+
+
+[[mods]]
+modId = "conditional"
+version = "${file.jarVersion}"
+displayName = "Conditional"
+authors = "SkySom, DivineAspect"
+description = '''
+        '''
