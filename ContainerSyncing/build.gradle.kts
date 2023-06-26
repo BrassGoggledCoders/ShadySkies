@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "xyz.brassgoggledcoders.shadyskies"
-version = "1.2.2"
+version = "1.2.6"
 
 java {
     toolchain {
