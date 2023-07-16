@@ -11,13 +11,14 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 @SuppressWarnings("unused")
 public class PropertyTypes {
     private static final List<PropertyType<?>> types = new ArrayList<>();
 
     public static PropertyType<FluidStack> FLUID_STACK = addType("fluid_stack", FluidStack.class,
-            FriendlyByteBuf::readFluidStack, FriendlyByteBuf::writeFluidStack, FluidStack::isFluidEqual);
+            FriendlyByteBuf::readFluidStack, FriendlyByteBuf::writeFluidStack, FluidStack::isFluidEqual, FluidStack::copy);
     public static PropertyType<Boolean> BOOLEAN = addType("boolean", Boolean.class, FriendlyByteBuf::readBoolean,
             FriendlyByteBuf::writeBoolean);
     public static PropertyType<Integer> INTEGER = addType("integer", Integer.class, FriendlyByteBuf::readInt,
@@ -28,7 +29,7 @@ public class PropertyTypes {
             FriendlyByteBuf::writeNbt);
     public static PropertyType<String> STRING = addType("string", String.class, FriendlyByteBuf::readUtf, FriendlyByteBuf::writeUtf);
     public static PropertyType<TankView> TANK_VIEW = addType("tank_view", TankView.class, TankView::read,
-            (friendlyByteBuf, tankView) -> tankView.write(friendlyByteBuf), TankView::checkEquals);
+            (friendlyByteBuf, tankView) -> tankView.write(friendlyByteBuf), TankView::checkEquals, TankView::copy);
     public static PropertyType<ProgressView> PROGRESS_VIEW = addType("progress_view", ProgressView.class,
             ProgressView::read, ((friendlyByteBuf, progressView) -> progressView.write(friendlyByteBuf)));
 
@@ -39,7 +40,12 @@ public class PropertyTypes {
 
     public static <T> PropertyType<T> addType(String name, Class<T> tClass, Function<FriendlyByteBuf, T> reader,
                                               BiConsumer<FriendlyByteBuf, T> writer, BiPredicate<T, T> equals) {
-        return addType(new PropertyType<>(name, tClass, reader, writer, equals));
+        return addType(new PropertyType<>(name, tClass, reader, writer, equals, UnaryOperator.identity()));
+    }
+
+    public static <T> PropertyType<T> addType(String name, Class<T> tClass, Function<FriendlyByteBuf, T> reader,
+                                              BiConsumer<FriendlyByteBuf, T> writer, BiPredicate<T, T> equals, UnaryOperator<T> copy) {
+        return addType(new PropertyType<>(name, tClass, reader, writer, equals, copy));
     }
 
     public static <T> PropertyType<T> addType(PropertyType<T> type) {

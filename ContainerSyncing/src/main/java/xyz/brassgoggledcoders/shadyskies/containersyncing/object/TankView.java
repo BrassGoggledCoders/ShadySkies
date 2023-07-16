@@ -19,6 +19,13 @@ public record TankView(
                 other.fluidStack().isFluidStackIdentical(this.fluidStack());
     }
 
+    public TankView copy() {
+        return new TankView(
+                this.fluidStack().copy(),
+                this.capacity()
+        );
+    }
+
     public void write(FriendlyByteBuf friendlyByteBuf) {
         friendlyByteBuf.writeFluidStack(this.fluidStack());
         friendlyByteBuf.writeInt(this.capacity());

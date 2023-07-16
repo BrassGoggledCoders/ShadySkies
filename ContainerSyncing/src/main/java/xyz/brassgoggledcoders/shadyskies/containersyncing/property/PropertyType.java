@@ -11,19 +11,21 @@ public class PropertyType<T> implements Comparable<PropertyType<?>> {
     private final Class<T> tClass;
     private final Function<FriendlyByteBuf, T> reader;
     private final BiConsumer<FriendlyByteBuf, T> writer;
+    private final UnaryOperator<T> copy;
     private final BiPredicate<T, T> equals;
 
     public PropertyType(String name, Class<T> tClass, Function<FriendlyByteBuf, T> reader, BiConsumer<FriendlyByteBuf, T> writer) {
-        this(name, tClass, reader, writer, Objects::equals);
+        this(name, tClass, reader, writer, Objects::equals, UnaryOperator.identity());
     }
 
     public PropertyType(String name, Class<T> tClass, Function<FriendlyByteBuf, T> reader, BiConsumer<FriendlyByteBuf, T> writer,
-                        BiPredicate<T, T> equals) {
+                        BiPredicate<T, T> equals, UnaryOperator<T> copy) {
         this.name = name;
         this.tClass = tClass;
         this.reader = reader;
         this.writer = writer;
         this.equals = equals;
+        this.copy = copy;
     }
 
     public Function<FriendlyByteBuf, T> getReader() {
@@ -36,6 +38,10 @@ public class PropertyType<T> implements Comparable<PropertyType<?>> {
 
     public BiPredicate<T, T> getEquals() {
         return equals;
+    }
+
+    public UnaryOperator<T> getCopy() {
+        return copy;
     }
 
     public String getName() {
