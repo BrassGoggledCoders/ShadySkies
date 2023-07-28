@@ -1,12 +1,11 @@
 plugins {
     id("java")
     id("maven-publish")
-    id("net.minecraftforge.gradle") version ("5.1.+")
-    id("org.parchmentmc.librarian.forgegradle") version ("1.+")
+    id("net.neoforged.gradle") version ("[6.0.18,6.2)")
 }
 
 group = "xyz.brassgoggledcoders.shadyskies"
-version = "1.1.0"
+version = "2.0.0"
 
 java {
     toolchain {
@@ -21,14 +20,14 @@ repositories {
 
 dependencies {
     "minecraft"(
-        group = "net.minecraftforge",
+        group = "net.neoforged",
         name = "forge",
-        version = "1.19.2-43.2.0"
+        version = "1.20.1-47.1.56"
     )
 }
 
 minecraft {
-    mappings("parchment", "2022.11.27-1.19.2")
+    mappings("official", "1.20.1")
 
     runs {
 

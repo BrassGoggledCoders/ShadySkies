@@ -5,13 +5,14 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryCodecs;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.material.Fluid;
 
 public record FluidStateConditional(
         HolderSet<Fluid> fluid
 ) implements IConditional {
     public static final Codec<FluidStateConditional> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            RegistryCodecs.homogeneousList(Registry.FLUID_REGISTRY)
+            RegistryCodecs.homogeneousList(Registries.FLUID)
                     .fieldOf("fluid")
                     .forGetter(FluidStateConditional::fluid)
     ).apply(instance, FluidStateConditional::new));

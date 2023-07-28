@@ -29,7 +29,7 @@ public class ConditionalTarget implements IConditionalTarget {
 
     @SuppressWarnings("unused")
     public ConditionalTarget(Entity entity) {
-        this(entity, entity.getLevel());
+        this(entity, entity.level());
     }
 
     public ConditionalTarget(Entity entity, Level level, BlockPos blockPos) {
