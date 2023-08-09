@@ -8,3 +8,4 @@ pluginManagement {
 
 include("ContainerSyncing")
 include("Conditional")
+include("Jsoning")

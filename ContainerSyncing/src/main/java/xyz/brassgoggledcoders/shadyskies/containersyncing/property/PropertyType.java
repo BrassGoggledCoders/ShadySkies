@@ -1,7 +1,6 @@
 package xyz.brassgoggledcoders.shadyskies.containersyncing.property;
 
 import net.minecraft.network.FriendlyByteBuf;
-import xyz.brassgoggledcoders.shadyskies.containersyncing.ContainerSyncing;
 
 import java.util.Objects;
 import java.util.function.*;
