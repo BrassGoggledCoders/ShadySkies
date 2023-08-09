@@ -30,7 +30,7 @@ public class StackJson {
         return jsonObject;
     }
 
-    public FluidStack readFluidStack(JsonObject jsonParent, String field) {
+    public static FluidStack readFluidStack(JsonObject jsonParent, String field) {
         JsonElement jsonElement = jsonParent.get(field);
         if (jsonElement == null || jsonElement.isJsonNull()) {
             throw new JsonParseException("'%s' cannot be null".formatted(field));
