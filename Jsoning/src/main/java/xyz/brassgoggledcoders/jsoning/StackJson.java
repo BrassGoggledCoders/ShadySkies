@@ -60,4 +60,15 @@ public class StackJson {
             throw new JsonParseException("'input' must be a string or an object");
         }
     }
+
+    public static JsonObject writeFluidStack(FluidStack fluidStack) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("fluid", Objects.requireNonNull(ForgeRegistries.FLUIDS.getKey(fluidStack.getFluid())).toString());
+        jsonObject.addProperty("amount", fluidStack.getAmount());
+        if (fluidStack.getTag() != null) {
+            jsonObject.add("nbt", GSON.toJsonTree(fluidStack.getTag().toString()));
+        }
+
+        return jsonObject;
+    }
 }

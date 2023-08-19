@@ -15,6 +15,7 @@ import net.minecraftforge.registries.tags.ITagManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 @SuppressWarnings("unused")
 public class RegistryJson {
@@ -77,5 +78,12 @@ public class RegistryJson {
                 }
             }
         }
+    }
+
+    public static <T> JsonPrimitive writeValueOrTag(IForgeRegistry<T> registry, Either<T, TagKey<T>> value) {
+        return new JsonPrimitive(value.<String>map(
+                entry -> Objects.requireNonNull(registry.getKey(entry)).toString(),
+                tagKey -> "#" + tagKey.location()
+        ));
     }
 }
