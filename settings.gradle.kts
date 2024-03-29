@@ -8,3 +8,5 @@ pluginManagement {
 
 include("ContainerSyncing")
 include("Conditional")
+include("MathExpressions")
+include("Functions")
