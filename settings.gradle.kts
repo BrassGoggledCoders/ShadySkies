@@ -9,4 +9,5 @@ pluginManagement {
 include("ContainerSyncing")
 include("Conditional")
 include("MathExpressions")
+include("Jsoning")
 include("Functions")
