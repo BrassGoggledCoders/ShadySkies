@@ -4,6 +4,7 @@ plugins {
 }
 
 group = "xyz.brassgoggledcoders.shadyskies"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
