@@ -2,31 +2,29 @@ package xyz.brassgoggledcoders.shadyskies.containersyncing;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkRegistry.ChannelBuilder;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
+import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
-import xyz.brassgoggledcoders.shadyskies.containersyncing.packet.UpdateClientMenuPropertiesPacket;
-import xyz.brassgoggledcoders.shadyskies.containersyncing.packet.UpdateServerMenuPropertyPacket;
+import org.slf4j.LoggerFactory;
+import xyz.brassgoggledcoders.shadyskies.containersyncing.packet.UpdateClientMenuPropertiesPayload;
+import xyz.brassgoggledcoders.shadyskies.containersyncing.packet.UpdateServerMenuPropertyPayload;
 import xyz.brassgoggledcoders.shadyskies.containersyncing.property.PropertyManager;
 import xyz.brassgoggledcoders.shadyskies.containersyncing.property.PropertyType;
 
 import java.util.List;
 
-public class ContainerSyncing {
-    private final static String VERSION = "1";
-    private final Logger logger;
-    private final SimpleChannel simpleChannel;
-
-    public ContainerSyncing(Logger logger, SimpleChannel simpleChannel) {
-        this.logger = logger;
-        this.simpleChannel = simpleChannel;
-    }
-
+@SuppressWarnings("unused")
+public record ContainerSyncing(
+        Logger logger,
+        ResourceLocation clientPayloadId,
+        ResourceLocation serverPayloadId
+) {
+    @Override
     @NotNull
-    public Logger getLogger() {
+    public Logger logger() {
         return this.logger;
     }
 
@@ -35,38 +33,32 @@ public class ContainerSyncing {
     }
 
     public void sendClientUpdate(ServerPlayer serverPlayer, short menuId, List<Triple<PropertyType<?>, Short, Object>> dirtyProperties) {
-        this.simpleChannel.send(
-                PacketDistributor.PLAYER.with(() -> serverPlayer),
-                new UpdateClientMenuPropertiesPacket(menuId, dirtyProperties)
-        );
+        PacketDistributor.PLAYER.with(serverPlayer)
+                .send(new UpdateClientMenuPropertiesPayload(this.clientPayloadId(), menuId, dirtyProperties));
     }
 
-    public void sendServerUpdate(UpdateServerMenuPropertyPacket updateServerMenuPropertyPacket) {
-        this.simpleChannel.send(
-                PacketDistributor.SERVER.noArg(),
-                updateServerMenuPropertyPacket
-        );
+    public void sendServerUpdate(short containerId, PropertyType<?> propertyType, short property, Object value) {
+        PacketDistributor.SERVER.noArg()
+                .send(new UpdateServerMenuPropertyPayload(this.serverPayloadId(), containerId, propertyType, property, value));
     }
 
-    public static ContainerSyncing setup(String modId, Logger logger) {
-        SimpleChannel simpleChannel = ChannelBuilder.named(new ResourceLocation(modId, "container_syncing"))
-                .networkProtocolVersion(() -> VERSION)
-                .clientAcceptedVersions(VERSION::matches)
-                .serverAcceptedVersions(VERSION::matches)
-                .simpleChannel();
+    public static ContainerSyncing setup(String modId, RegisterPayloadHandlerEvent event) {
+        IPayloadRegistrar registrar = event.registrar(modId);
 
-        simpleChannel.messageBuilder(UpdateClientMenuPropertiesPacket.class, 0)
-                .encoder(UpdateClientMenuPropertiesPacket::encode)
-                .decoder(UpdateClientMenuPropertiesPacket::decode)
-                .consumerMainThread(UpdateClientMenuPropertiesPacket::consume)
-                .add();
+        ResourceLocation clientPayloadId = new ResourceLocation(modId, "update_client_menu");
+        registrar.play(
+                clientPayloadId,
+                byteBuf -> UpdateClientMenuPropertiesPayload.decode(clientPayloadId, byteBuf),
+                handler -> handler.client(UpdateClientMenuPropertiesPayload::handleData)
+        );
 
-        simpleChannel.messageBuilder(UpdateServerMenuPropertyPacket.class, 1)
-                .encoder(UpdateServerMenuPropertyPacket::encode)
-                .decoder(UpdateServerMenuPropertyPacket::decode)
-                .consumerMainThread(UpdateServerMenuPropertyPacket::consume)
-                .add();
+        ResourceLocation serverPayloadId = new ResourceLocation(modId, "update_server_menu");
+        registrar.play(
+                serverPayloadId,
+                byteBuf -> UpdateServerMenuPropertyPayload.decode(serverPayloadId, byteBuf),
+                handler -> handler.server(UpdateServerMenuPropertyPayload::handleData)
+        );
 
-        return new ContainerSyncing(logger, simpleChannel);
+        return new ContainerSyncing(LoggerFactory.getLogger(modId), clientPayloadId, serverPayloadId);
     }
 }

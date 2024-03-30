@@ -2,7 +2,7 @@ package xyz.brassgoggledcoders.shadyskies.containersyncing.property;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import xyz.brassgoggledcoders.shadyskies.containersyncing.object.ProgressView;
 import xyz.brassgoggledcoders.shadyskies.containersyncing.object.TankView;
 

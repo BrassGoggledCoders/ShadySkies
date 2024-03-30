@@ -1,11 +1,13 @@
 plugins {
-    id("java")
+    id("java-library")
+    id("eclipse")
+    id("idea")
     id("maven-publish")
-    id("net.neoforged.gradle") version ("[6.0.18,6.2)")
+    id("net.neoforged.gradle.userdev") version "7.0.97"
 }
 
 group = "xyz.brassgoggledcoders.shadyskies"
-version = "2.0.0"
+version = "3.0.0"
 
 java {
     toolchain {
@@ -19,15 +21,14 @@ repositories {
 }
 
 dependencies {
-    "minecraft"(
+    implementation(
         group = "net.neoforged",
-        name = "forge",
-        version = "1.20.1-47.1.56"
+        name = "neoforge",
+        version = "20.4.147-beta"
     )
 }
 
 minecraft {
-    mappings("official", "1.20.1")
 
     runs {
 
@@ -41,8 +42,6 @@ tasks.jar {
             "FMLModType" to "GAMELIBRARY"
         ))
     }
-
-    finalizedBy("reobfJar")
 }
 
 artifacts {

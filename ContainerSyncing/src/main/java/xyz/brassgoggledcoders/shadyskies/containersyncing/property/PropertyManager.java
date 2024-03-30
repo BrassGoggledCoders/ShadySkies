@@ -2,13 +2,15 @@ package xyz.brassgoggledcoders.shadyskies.containersyncing.property;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
+import net.neoforged.bus.api.SubscribeEvent;
 import org.apache.commons.lang3.tuple.Triple;
 import xyz.brassgoggledcoders.shadyskies.containersyncing.ContainerSyncing;
-import xyz.brassgoggledcoders.shadyskies.containersyncing.packet.UpdateServerMenuPropertyPacket;
+import xyz.brassgoggledcoders.shadyskies.containersyncing.packet.UpdateServerMenuPropertyPayload;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class PropertyManager {
     private final List<Property<?>> properties;
     private final short menuId;
@@ -44,12 +46,12 @@ public class PropertyManager {
             }
         }
         property.set(value);
-        containerSyncing.sendServerUpdate(new UpdateServerMenuPropertyPacket(
+        containerSyncing.sendServerUpdate(
                 menuId,
                 property.getPropertyType(),
                 propertyId,
                 value
-        ));
+        );
     }
 
     public void sendChanges(ServerPlayer serverPlayer, boolean firstTime) {
@@ -74,7 +76,7 @@ public class PropertyManager {
                 try {
                     propertyType.attemptSet(value, property);
                 } catch (ClassCastException e) {
-                    containerSyncing.getLogger().warn("Failed to set Property", e);
+                    containerSyncing.logger().warn("Failed to set Property", e);
                 }
             }
         }

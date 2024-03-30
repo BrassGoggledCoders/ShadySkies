@@ -3,7 +3,9 @@ package xyz.brassgoggledcoders.shadyskies.containersyncing.packet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.PlayPayloadContext;
 import org.apache.commons.lang3.tuple.Triple;
 import xyz.brassgoggledcoders.shadyskies.containersyncing.property.IPropertyManaged;
 import xyz.brassgoggledcoders.shadyskies.containersyncing.property.PropertyManager;
@@ -12,18 +14,15 @@ import xyz.brassgoggledcoders.shadyskies.containersyncing.property.PropertyTypes
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
-public class UpdateClientMenuPropertiesPacket {
-    private final short menuId;
-    private final List<Triple<PropertyType<?>, Short, Object>> updates;
+public record UpdateClientMenuPropertiesPayload(
+        ResourceLocation id,
+        short menuId,
+        List<Triple<PropertyType<?>, Short, Object>> updates
+) implements CustomPacketPayload {
 
-    public UpdateClientMenuPropertiesPacket(short menuId, List<Triple<PropertyType<?>, Short, Object>> updates) {
-        this.menuId = menuId;
-        this.updates = updates;
-    }
-
-    public void encode(FriendlyByteBuf packetBuffer) {
+    @Override
+    public void write(FriendlyByteBuf packetBuffer) {
         packetBuffer.writeShort(menuId);
         List<Triple<PropertyType<?>, Short, Object>> validUpdates = new ArrayList<>();
         for (Triple<PropertyType<?>, Short, Object> update : updates) {
@@ -40,21 +39,22 @@ public class UpdateClientMenuPropertiesPacket {
         }
     }
 
-    public void consume(Supplier<NetworkEvent.Context> contextSupplier) {
-        contextSupplier.get().enqueueWork(() -> {
-            LocalPlayer playerEntity = Minecraft.getInstance().player;
-            if (playerEntity != null && playerEntity.containerMenu instanceof IPropertyManaged propertyManaged) {
-                if (playerEntity.containerMenu.containerId == menuId) {
-                    PropertyManager propertyManager = propertyManaged.getPropertyManager();
-                    for (Triple<PropertyType<?>, Short, Object> update : updates) {
-                        propertyManager.update(update.getLeft(), update.getMiddle(), update.getRight());
+    public static void handleData(UpdateClientMenuPropertiesPayload pack, PlayPayloadContext context) {
+        context.workHandler()
+                .submitAsync(() -> {
+                    LocalPlayer playerEntity = Minecraft.getInstance().player;
+                    if (playerEntity != null && playerEntity.containerMenu instanceof IPropertyManaged propertyManaged) {
+                        if (playerEntity.containerMenu.containerId == pack.menuId) {
+                            PropertyManager propertyManager = propertyManaged.getPropertyManager();
+                            for (Triple<PropertyType<?>, Short, Object> update : pack.updates) {
+                                propertyManager.update(update.getLeft(), update.getMiddle(), update.getRight());
+                            }
+                        }
                     }
-                }
-            }
-        });
+                });
     }
 
-    public static UpdateClientMenuPropertiesPacket decode(FriendlyByteBuf packetBuffer) {
+    public static UpdateClientMenuPropertiesPayload decode(ResourceLocation id, FriendlyByteBuf packetBuffer) {
         short windowId = packetBuffer.readShort();
         short updateAmount = packetBuffer.readShort();
         List<Triple<PropertyType<?>, Short, Object>> updates = new ArrayList<>();
@@ -64,6 +64,6 @@ public class UpdateClientMenuPropertiesPacket {
             Object object = propertyType.getReader().apply(packetBuffer);
             updates.add(Triple.of(propertyType, propertyLocation, object));
         }
-        return new UpdateClientMenuPropertiesPacket(windowId, updates);
+        return new UpdateClientMenuPropertiesPayload(id, windowId, updates);
     }
 }
