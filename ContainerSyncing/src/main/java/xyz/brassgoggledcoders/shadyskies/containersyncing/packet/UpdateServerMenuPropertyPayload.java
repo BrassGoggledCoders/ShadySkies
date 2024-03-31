@@ -2,7 +2,6 @@ package xyz.brassgoggledcoders.shadyskies.containersyncing.packet;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -25,11 +24,6 @@ public record UpdateServerMenuPropertyPayload(
         friendlyByteBuf.writeShort(PropertyTypes.getIndex(propertyType));
         friendlyByteBuf.writeShort(property);
         propertyType.attemptWrite(friendlyByteBuf, value);
-    }
-
-    @Override
-    public ResourceLocation id() {
-        return null;
     }
 
     public static UpdateServerMenuPropertyPayload decode(ResourceLocation id, FriendlyByteBuf packetBuffer) {
