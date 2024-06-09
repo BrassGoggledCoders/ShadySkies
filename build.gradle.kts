@@ -8,7 +8,7 @@ plugins {
 }
 
 childProjects.filter {
-    it.key in listOf("Registering")
+    it.key in listOf("Registering","DataRegistering")
 }.forEach {
     it.value.apply(plugin = "net.neoforged.gradle.userdev")
     it.value.apply(plugin = "maven-publish")
