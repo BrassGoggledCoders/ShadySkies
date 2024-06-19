@@ -3,11 +3,13 @@ package xyz.brassgoggledcoders.shadyskies.registering;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -16,12 +18,17 @@ public class Registering {
     private final String modId;
 
     private final Map<ResourceKey<? extends Registry<?>>, DeferredRegister<?>> deferredRegisters;
+    private final List<IRegisteringEntry<?, ?>> registeringEntries;
+
+    private final List<Object> registeringObjects;
 
     private IEventBus modBus;
 
     public Registering(String modId) {
         this.modId = modId;
         this.deferredRegisters = new HashMap<>();
+        this.registeringEntries = new ArrayList<>();
+        this.registeringObjects = new ArrayList<>();
     }
 
     public <B extends IRegisteringBuilder<E>, E extends IRegisteringEntry<T, U>, T extends U, U> E register(
@@ -37,6 +44,16 @@ public class Registering {
             String name
     ) {
         return builderCreator.apply(this, name);
+    }
+
+    public <B extends IStartedRegisteringBuilder<E, W>, E extends IRegisteringEntry<T, U>, T extends U, U, W> B begin(
+            BiFunction<Registering, String, B> builderCreator,
+            String name,
+            W beginningValue
+    ) {
+        B value = builderCreator.apply(this, name);
+        value.start(beginningValue);
+        return value;
     }
 
     @SuppressWarnings("unchecked")
@@ -56,9 +73,36 @@ public class Registering {
 
     public void setModBus(IEventBus modBus) {
         this.modBus = modBus;
+
+        this.modBus.addListener(this::finishLoad);
         for (DeferredRegister<?> deferredRegister : deferredRegisters.values()) {
             deferredRegister.register(this.modBus);
         }
+
+        if (FMLEnvironment.dist.isClient()) {
+            ClientSetup.setupEventHandler(this, modBus);
+        }
+    }
+
+    public void addRegisteringEntry(IRegisteringEntry<?, ?> registeringEntry) {
+        this.registeringEntries.add(registeringEntry);
+    }
+
+    public List<IRegisteringEntry<?, ?>> getRegisteringEntries() {
+        return this.registeringEntries;
+    }
+
+    public void addRegisteringObject(Object registeringObject) {
+        this.registeringObjects.add(registeringObject);
+    }
+
+    public Iterator<Object> getRegisteringObjects() {
+        return registeringObjects.iterator();
+    }
+
+    public void finishLoad(FMLLoadCompleteEvent event) {
+        this.registeringEntries.clear();
+        this.registeringObjects.clear();
     }
 
     public static Registering of(String modId) {

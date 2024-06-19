@@ -5,7 +5,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.NotNull;
 
-public class RegisteringEntry<T extends B, B> implements IRegisteringEntry<T, B> {
+import java.util.function.Supplier;
+
+public class RegisteringEntry<T extends B, B> implements IRegisteringEntry<T, B>, Supplier<T> {
     private final DeferredHolder<B, T> holder;
 
     public RegisteringEntry(DeferredHolder<B, T> holder) {

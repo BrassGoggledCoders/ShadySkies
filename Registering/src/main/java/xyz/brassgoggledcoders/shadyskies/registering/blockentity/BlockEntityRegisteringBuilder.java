@@ -1,12 +1,10 @@
 package xyz.brassgoggledcoders.shadyskies.registering.blockentity;
 
-import net.minecraft.Util;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.BlockEntityType.BlockEntitySupplier;
-import net.neoforged.neoforge.registries.DeferredHolder;
 import xyz.brassgoggledcoders.shadyskies.registering.IRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.Registering;
 import xyz.brassgoggledcoders.shadyskies.registering.block.BlockRegisteringEntry;
@@ -14,12 +12,13 @@ import xyz.brassgoggledcoders.shadyskies.registering.block.BlockRegisteringEntry
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class BlockEntityRegisteringBuilder<B extends BlockEntity> implements IRegisteringBuilder<BlockEntityRegisteringEntry<B>> {
     private final Registering registering;
     private final String name;
 
-    private final List<Block> validBlocks;
+    private final List<Supplier<? extends Block>> validBlocks;
 
     private BlockEntitySupplier<B> supplier;
 
@@ -30,6 +29,13 @@ public class BlockEntityRegisteringBuilder<B extends BlockEntity> implements IRe
     }
 
     public BlockEntityRegisteringBuilder<B> withValidBlocks(Block... blocks) {
+        Arrays.stream(blocks)
+                .forEach(block -> this.validBlocks.add(() -> block));
+        return this;
+    }
+
+    @SafeVarargs
+    public final BlockEntityRegisteringBuilder<B> withValidBlocks(Supplier<? extends Block>... blocks) {
         this.validBlocks.addAll(Arrays.asList(blocks));
         return this;
     }
@@ -43,13 +49,26 @@ public class BlockEntityRegisteringBuilder<B extends BlockEntity> implements IRe
     @Override
     @SuppressWarnings("DataFlowIssue")
     public BlockEntityRegisteringEntry<B> build() {
-        return new BlockEntityRegisteringEntry<>(registering.getDeferredRegister(Registries.BLOCK_ENTITY_TYPE)
+        BlockEntityRegisteringEntry<B> entry = new BlockEntityRegisteringEntry<>(registering.getDeferredRegister(Registries.BLOCK_ENTITY_TYPE)
                 .register(this.name, () -> BlockEntityType.Builder.of(
                                         this.supplier,
-                                        this.validBlocks.toArray(Block[]::new)
+                                        this.validBlocks.stream()
+                                                .map(Supplier::get)
+                                                .toArray(Block[]::new)
                                 )
                                 .build(null)
                 )
+        );
+
+        registering.addRegisteringEntry(entry);
+
+        return entry;
+    }
+
+    public static <BE extends BlockEntity> BlockEntityRegisteringBuilder<BE> begin(Registering registering, String name) {
+        return registering.begin(
+                BlockEntityRegisteringBuilder::new,
+                name
         );
     }
 }

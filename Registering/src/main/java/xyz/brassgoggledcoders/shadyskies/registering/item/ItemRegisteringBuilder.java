@@ -33,8 +33,12 @@ public class ItemRegisteringBuilder<I extends Item> implements IRegisteringBuild
 
     @Override
     public ItemRegisteringEntry<I> build() {
-        return new ItemRegisteringEntry<>(registering.getDeferredRegister(Registries.ITEM)
+        ItemRegisteringEntry<I> entry = new ItemRegisteringEntry<>(registering.getDeferredRegister(Registries.ITEM)
                 .register(this.name, () -> this.itemConstructor.apply(this.properties))
         );
+
+        registering.addRegisteringEntry(entry);
+
+        return entry;
     }
 }

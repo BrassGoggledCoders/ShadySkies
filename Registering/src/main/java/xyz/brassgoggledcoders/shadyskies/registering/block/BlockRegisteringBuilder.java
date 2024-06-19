@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType.BlockEntitySupplier;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import xyz.brassgoggledcoders.shadyskies.registering.IRegisteringBuilder;
+import xyz.brassgoggledcoders.shadyskies.registering.IStartedRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.Registering;
 import xyz.brassgoggledcoders.shadyskies.registering.blockentity.BlockEntityRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.blockentity.BlockEntityRegisteringEntry;
@@ -19,7 +19,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
-public class BlockRegisteringBuilder<T extends Block, I extends Item> implements IRegisteringBuilder<BlockRegisteringEntry<T, I>> {
+public class BlockRegisteringBuilder<T extends Block, I extends Item> implements IStartedRegisteringBuilder<BlockRegisteringEntry<T, I>, Function<Properties, T>> {
     private final Registering registering;
     private final String name;
 
@@ -35,6 +35,7 @@ public class BlockRegisteringBuilder<T extends Block, I extends Item> implements
         this.properties = Properties.of();
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public BlockRegisteringBuilder<T, I> withBlock(Function<Properties, T> blockConstructor) {
         this.blockConstructor = blockConstructor;
         return this;
@@ -76,17 +77,26 @@ public class BlockRegisteringBuilder<T extends Block, I extends Item> implements
                     BlockEntityRegisteringBuilder::new,
                     this.name,
                     blockEntityRegisteringBuilder -> this.blockEntityCreator.apply(blockEntityRegisteringBuilder)
-                            .withValidBlocks(blockHolder.get())
+                            .withValidBlocks(blockHolder)
                             .build()
             );
         }
 
 
-        return new BlockRegisteringEntry<>(
+        BlockRegisteringEntry<T, I> entry = new BlockRegisteringEntry<>(
                 blockHolder,
                 itemRegisteringEntry,
                 blockEntityRegisteringEntry
         );
+
+        registering.addRegisteringEntry(entry);
+
+        return entry;
+    }
+
+    @Override
+    public void start(Function<Properties, T> starting) {
+        this.withBlock(starting);
     }
 
     public static <B1 extends Block, I1 extends Item> BlockRegisteringBuilder<B1, I1> begin(Registering registering, String name) {
