@@ -5,9 +5,10 @@ import net.minecraft.resources.ResourceKey;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
+import xyz.brassgoggledcoders.shadyskies.registering.item.ItemRegisteringEntry;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -79,9 +80,20 @@ public class Registering {
             deferredRegister.register(this.modBus);
         }
 
+        this.modBus.addListener(this::handleCreativeTabs);
+
         if (FMLEnvironment.dist.isClient()) {
             ClientSetup.setupEventHandler(this, modBus);
         }
+    }
+
+    public void handleCreativeTabs(BuildCreativeModeTabContentsEvent event) {
+        this.getRegisteringEntries()
+                .forEach(registeringEntry -> {
+                    if (registeringEntry instanceof ItemRegisteringEntry<?> itemRegisteringEntry) {
+                        itemRegisteringEntry.buildCreativeTab(event);
+                    }
+                });
     }
 
     public void addRegisteringEntry(IRegisteringEntry<?, ?> registeringEntry) {
@@ -101,7 +113,6 @@ public class Registering {
     }
 
     public void finishLoad(FMLLoadCompleteEvent event) {
-        this.registeringEntries.clear();
         this.registeringObjects.clear();
     }
 
