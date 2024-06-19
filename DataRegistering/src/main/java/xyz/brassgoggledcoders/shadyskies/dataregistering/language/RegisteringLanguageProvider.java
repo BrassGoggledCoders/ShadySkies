@@ -25,9 +25,6 @@ public class RegisteringLanguageProvider extends LanguageProvider implements Tra
 
     @Override
     public Component addTranslation(String key, String translation) {
-        if (translations.containsKey(key)) {
-            throw new IllegalArgumentException(key + " is already set");
-        }
         translations.put(key, translation);
         return Component.translatable(key);
     }

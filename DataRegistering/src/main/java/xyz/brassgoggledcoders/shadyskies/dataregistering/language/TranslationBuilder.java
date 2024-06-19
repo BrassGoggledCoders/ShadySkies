@@ -7,6 +7,7 @@ import xyz.brassgoggledcoders.shadyskies.dataregistering.builder.BuilderType;
 
 import java.util.Objects;
 
+@SuppressWarnings("unused")
 public class TranslationBuilder implements Builder {
     public static final BuilderType<TranslationBuilder> TYPE = BuilderType.createType(TranslationBuilder::new);
 

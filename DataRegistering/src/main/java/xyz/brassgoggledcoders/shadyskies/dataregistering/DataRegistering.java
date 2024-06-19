@@ -8,10 +8,13 @@ import xyz.brassgoggledcoders.shadyskies.dataregistering.builder.BuilderRecord;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.builder.BuilderType;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.provider.ProviderRecord;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.provider.ProviderType;
+import xyz.brassgoggledcoders.shadyskies.dataregistering.registering.DataRegisteringEntry;
+import xyz.brassgoggledcoders.shadyskies.registering.RegisteringEntry;
 
 import java.util.*;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unused")
 public class DataRegistering {
     private final String id;
     private final Map<ProviderType<?>, Object> providers;
@@ -58,6 +61,14 @@ public class DataRegistering {
 
     public <T extends Builder> void multiBuilder(BuilderType<T> builderType, Consumer<BuilderFactory<T>> builder) {
         this.handlers.add(dataRegistering -> builder.accept(new BuilderFactory<>(dataRegistering, builderType)));
+    }
+
+    public void duringGeneration(Runnable runnable) {
+        this.handlers.add(dataRegistering -> runnable.run());
+    }
+
+    public <T extends RegisteringEntry<U, V>, U extends V, V> DataRegisteringEntry<T, U, V> forEntry(T entry) {
+        return new DataRegisteringEntry<>(entry, this);
     }
 
     public String getModId() {
