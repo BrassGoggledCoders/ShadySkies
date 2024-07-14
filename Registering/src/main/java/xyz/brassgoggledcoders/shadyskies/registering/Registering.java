@@ -107,6 +107,11 @@ public class Registering {
                 });
     }
 
+    public <T> Registry<T> createRegistry(ResourceKey<? extends Registry<T>> registryKey) {
+        return this.getDeferredRegister(registryKey)
+                .makeRegistry(builder -> {});
+    }
+
     public void addRegisteringEntry(IRegisteringEntry<?, ?> registeringEntry) {
         this.registeringEntries.add(registeringEntry);
     }

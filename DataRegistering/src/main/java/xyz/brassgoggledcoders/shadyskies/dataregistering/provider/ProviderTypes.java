@@ -1,10 +1,10 @@
 package xyz.brassgoggledcoders.shadyskies.dataregistering.provider;
 
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.blockstate.DeferredBlockStateProvider;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.loottable.DataRegisteringLootTableProvider;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.loottable.ILootTableProvider;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.recipe.DeferredRecipeProvider;
+import xyz.brassgoggledcoders.shadyskies.dataregistering.tags.DataRegisteringTagProvider;
 
 @SuppressWarnings("unused")
 public class ProviderTypes {
@@ -51,6 +51,23 @@ public class ProviderTypes {
                 event.getGenerator()
                         .addProvider(event.includeServer(), lootTableProvider);
 
-                return  lootTableProvider;
+                return lootTableProvider;
             });
+
+    public static final ProviderType<DataRegisteringTagProvider> TAGS = ProviderType.createType(
+            DataRegisteringTagProvider.class,
+            (id, event) -> {
+                DataRegisteringTagProvider tagProvider = new DataRegisteringTagProvider(
+                        event.getGenerator()
+                                .getPackOutput(),
+                        event.getLookupProvider(),
+                        id,
+                        event.getExistingFileHelper()
+                );
+
+                event.getGenerator().addProvider(event.includeServer(), tagProvider);
+
+                return tagProvider;
+            }
+    );
 }
