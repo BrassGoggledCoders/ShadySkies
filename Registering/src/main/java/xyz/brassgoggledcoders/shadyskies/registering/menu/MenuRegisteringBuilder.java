@@ -7,13 +7,10 @@ import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.fml.loading.FMLEnvironment;
 import xyz.brassgoggledcoders.shadyskies.registering.ClientSetup;
 import xyz.brassgoggledcoders.shadyskies.registering.IRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.Registering;
-import xyz.brassgoggledcoders.shadyskies.registering.blockentity.BlockEntityRegisteringBuilder;
-import xyz.brassgoggledcoders.shadyskies.registering.eventhandler.ClientEventHandler;
 
 import java.util.Objects;
 import java.util.function.Supplier;

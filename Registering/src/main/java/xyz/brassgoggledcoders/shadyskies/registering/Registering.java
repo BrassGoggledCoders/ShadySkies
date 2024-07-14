@@ -1,18 +1,29 @@
 package xyz.brassgoggledcoders.shadyskies.registering;
 
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
+import xyz.brassgoggledcoders.shadyskies.registering.block.BlockRegisteringBuilder;
+import xyz.brassgoggledcoders.shadyskies.registering.blockentity.BlockEntityRegisteringBuilder;
+import xyz.brassgoggledcoders.shadyskies.registering.item.ItemRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.item.ItemRegisteringEntry;
+import xyz.brassgoggledcoders.shadyskies.registering.menu.MenuRegisteringBuilder;
+import xyz.brassgoggledcoders.shadyskies.registering.simple.SimpleBuildingRegisteringBuilder;
 
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public class Registering {
@@ -114,6 +125,33 @@ public class Registering {
 
     public void finishLoad(FMLLoadCompleteEvent event) {
         this.registeringObjects.clear();
+    }
+
+    public <R, T extends R> RegisteringEntry<T, R> simple(String name, ResourceKey<? extends Registry<R>> registryKey, Supplier<T> supplier) {
+        return this.<R, T>simple(name)
+                .withRegistryKey(registryKey)
+                .withSupplier(supplier)
+                .build();
+    }
+
+    public <R, T extends R> SimpleBuildingRegisteringBuilder<R, T> simple(String name) {
+        return this.begin(SimpleBuildingRegisteringBuilder::new, name);
+    }
+
+    public <B extends Block, I extends Item> BlockRegisteringBuilder<B, I> block(String name) {
+        return this.begin(BlockRegisteringBuilder::new, name);
+    }
+
+    public <I extends Item> ItemRegisteringBuilder<I> item(String name) {
+        return this.begin(ItemRegisteringBuilder::new, name);
+    }
+
+    public <B extends BlockEntity> BlockEntityRegisteringBuilder<B> blockEntity(String name) {
+        return this.begin(BlockEntityRegisteringBuilder::new, name);
+    }
+
+    public <M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>> MenuRegisteringBuilder<M, S> menu(String name) {
+        return this.begin(MenuRegisteringBuilder::new, name);
     }
 
     public static Registering of(String modId) {
