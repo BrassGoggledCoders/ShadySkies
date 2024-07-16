@@ -4,13 +4,13 @@ import xyz.brassgoggledcoders.shadyskies.dataregistering.DataRegistering;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.builder.Builder;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.builder.BuilderType;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.provider.ProviderType;
-import xyz.brassgoggledcoders.shadyskies.registering.RegisteringEntry;
+import xyz.brassgoggledcoders.shadyskies.registering.IRegisteringEntry;
 
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
-public class DataRegisteringEntry<T extends RegisteringEntry<U, V>, U extends V, V> implements Supplier<U> {
+public class DataRegisteringEntry<T extends IRegisteringEntry<U, V>, U extends V, V> implements Supplier<U> {
     private final T registeringEntry;
     private final DataRegistering dataRegistering;
 

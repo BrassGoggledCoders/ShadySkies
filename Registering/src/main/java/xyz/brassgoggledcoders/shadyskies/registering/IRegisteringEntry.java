@@ -15,5 +15,11 @@ public interface IRegisteringEntry<T, B> extends Supplier<T> {
     @NotNull
     ResourceLocation getId();
 
+    @NotNull
+    default String getName() {
+        return this.getId()
+                .getPath();
+    }
+
     ResourceKey<? extends Registry<B>> registryKey();
 }
