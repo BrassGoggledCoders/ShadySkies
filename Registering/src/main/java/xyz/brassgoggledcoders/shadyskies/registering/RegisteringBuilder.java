@@ -2,6 +2,7 @@ package xyz.brassgoggledcoders.shadyskies.registering;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,7 +56,7 @@ public abstract class RegisteringBuilder<P, B extends RegisteringBuilder<P, B, R
 
     @NotNull
     protected IRegisteringEntry<T, R> createEntry() {
-        return new RegisteringEntry<>(this.createDeferredHolder());
+        return new RegisteringEntry<>(this.createDeferredHolder(), this.registryKey);
     }
 
     protected DeferredHolder<R, T> createDeferredHolder() {

@@ -51,6 +51,14 @@ public class Registering {
         this.name = new OneUseValue<>();
     }
 
+    public IRegisteringEntry<?, ?> getRegisteringEntry(ResourceKey<? extends Registry<?>> registry, String name) {
+        return this.getRegisteringEntries()
+                .stream()
+                .filter(registeringEntry -> registeringEntry.registryKey() == registry && registeringEntry.getId().getPath().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No registering entry found for " + name));
+    }
+
     public <B extends IRegisteringBuilder<Registering, B, E>, E extends IRegisteringEntry<T, U>, T extends U, U> E register(
             BiFunction<Registering, String, B> builderCreator,
             String name,
@@ -142,6 +150,10 @@ public class Registering {
     public <R, T extends R> IRegisteringEntry<T, R> simple(ResourceKey<? extends Registry<R>> registryKey, Supplier<T> supplier) {
         return new SimpleBuildingRegisteringBuilder<>(this, this, this.name.get(), registryKey, supplier)
                 .register();
+    }
+
+    public <B extends Block> BlockRegisteringBuilder<Registering, B> block(Function<BlockBehaviour.Properties, B> blockCreator) {
+        return this.block(this, blockCreator);
     }
 
     public <P, B extends Block> BlockRegisteringBuilder<P, B> block(P parent, Function<BlockBehaviour.Properties, B> blockCreator) {

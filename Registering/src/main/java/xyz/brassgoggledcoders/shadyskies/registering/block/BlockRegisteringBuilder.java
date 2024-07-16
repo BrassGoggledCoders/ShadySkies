@@ -1,14 +1,18 @@
 package xyz.brassgoggledcoders.shadyskies.registering.block;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.shadyskies.registering.Registering;
 import xyz.brassgoggledcoders.shadyskies.registering.RegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.item.ItemLikeEntry;
+import xyz.brassgoggledcoders.shadyskies.registering.item.ItemRegisteringBuilder;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
@@ -26,6 +30,20 @@ public class BlockRegisteringBuilder<P, T extends Block> extends RegisteringBuil
     public BlockRegisteringBuilder<P, T> withProperties(Function<Properties, Properties> propertiesFunc) {
         this.properties = Objects.requireNonNull(propertiesFunc.apply(this.properties));
         return this;
+    }
+
+    public BlockRegisteringBuilder<P, T> withDefaultItem() {
+        return this.withItem()
+                .build();
+    }
+
+    public ItemRegisteringBuilder<BlockRegisteringBuilder<P, T>, BlockItem> withItem() {
+        return this.withItem(BlockItem::new);
+    }
+
+    public <I extends Item> ItemRegisteringBuilder<BlockRegisteringBuilder<P, T>, I> withItem(BiFunction<T, Item.Properties, I> itemCreator) {
+        return this.getRegistering()
+                .item(this, (itemProperties) -> itemCreator.apply(this.getBlock(), itemProperties));
     }
 
     @Override
@@ -46,5 +64,12 @@ public class BlockRegisteringBuilder<P, T extends Block> extends RegisteringBuil
     @Override
     protected @NotNull T create() {
         return this.blockConstructor.apply(this.properties);
+    }
+
+    @SuppressWarnings("unchecked")
+    private final T getBlock() {
+        return (T) this.getRegistering()
+                .getRegisteringEntry(this.getRegistryKey(), this.getName())
+                .get();
     }
 }

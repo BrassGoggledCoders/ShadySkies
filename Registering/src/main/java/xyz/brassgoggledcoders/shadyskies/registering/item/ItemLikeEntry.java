@@ -1,5 +1,7 @@
 package xyz.brassgoggledcoders.shadyskies.registering.item;
 
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -8,8 +10,8 @@ import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.shadyskies.registering.RegisteringEntry;
 
 public class ItemLikeEntry<T extends B, B> extends RegisteringEntry<T, B> implements ItemLike {
-    public ItemLikeEntry(DeferredHolder<B, T> holder) {
-        super(holder);
+    public ItemLikeEntry(DeferredHolder<B, T> holder, ResourceKey<? extends Registry<B>> registryKey) {
+        super(holder, registryKey);
     }
 
     @Override
