@@ -5,70 +5,66 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.BlockEntityType.BlockEntitySupplier;
-import xyz.brassgoggledcoders.shadyskies.registering.IRegisteringBuilder;
+import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.shadyskies.registering.Registering;
-import xyz.brassgoggledcoders.shadyskies.registering.block.BlockRegisteringEntry;
+import xyz.brassgoggledcoders.shadyskies.registering.RegisteringBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-public class BlockEntityRegisteringBuilder<B extends BlockEntity> implements IRegisteringBuilder<BlockEntityRegisteringEntry<B>> {
-    private final Registering registering;
-    private final String name;
+public class BlockEntityRegisteringBuilder<P, B extends BlockEntity> extends RegisteringBuilder<P, BlockEntityRegisteringBuilder<P, B>, BlockEntityType<?>, BlockEntityType<B>> {
 
+    private final BlockEntitySupplier<B> supplier;
     private final List<Supplier<? extends Block>> validBlocks;
 
-    private BlockEntitySupplier<B> supplier;
-
-    public BlockEntityRegisteringBuilder(Registering registering, String name) {
-        this.registering = registering;
-        this.name = name;
+    public BlockEntityRegisteringBuilder(Registering registering, P parent, String name, BlockEntitySupplier<B> supplier) {
+        super(registering, parent, name, Registries.BLOCK_ENTITY_TYPE);
+        this.supplier = supplier;
         this.validBlocks = new ArrayList<>();
     }
 
-    public BlockEntityRegisteringBuilder<B> withValidBlocks(Block... blocks) {
+    public BlockEntityRegisteringBuilder<P, B> withValidBlocks(Block... blocks) {
         Arrays.stream(blocks)
                 .forEach(block -> this.validBlocks.add(() -> block));
         return this;
     }
 
     @SafeVarargs
-    public final BlockEntityRegisteringBuilder<B> withValidBlocks(Supplier<? extends Block>... blocks) {
+    public final BlockEntityRegisteringBuilder<P, B> withValidBlocks(Supplier<? extends Block>... blocks) {
         this.validBlocks.addAll(Arrays.asList(blocks));
-        return this;
-    }
-
-    public BlockEntityRegisteringBuilder<B> withBlockEntitySupplier(BlockEntitySupplier<B> supplier) {
-        this.supplier = supplier;
         return this;
     }
 
 
     @Override
-    @SuppressWarnings("DataFlowIssue")
-    public BlockEntityRegisteringEntry<B> build() {
-        BlockEntityRegisteringEntry<B> entry = new BlockEntityRegisteringEntry<>(registering.getDeferredRegister(Registries.BLOCK_ENTITY_TYPE)
-                .register(this.name, () -> BlockEntityType.Builder.of(
-                                        this.supplier,
-                                        this.validBlocks.stream()
-                                                .map(Supplier::get)
-                                                .toArray(Block[]::new)
-                                )
-                                .build(null)
-                )
-        );
-
-        registering.addRegisteringEntry(entry);
-
-        return entry;
+    protected @NotNull BlockEntityRegisteringEntry<B> createEntry() {
+        return new BlockEntityRegisteringEntry<>(this.createDeferredHolder());
     }
 
-    public static <BE extends BlockEntity> BlockEntityRegisteringBuilder<BE> begin(Registering registering, String name) {
-        return registering.begin(
-                BlockEntityRegisteringBuilder::new,
-                name
+
+    @Override
+    @SuppressWarnings("DataFlowIssue")
+    protected @NotNull BlockEntityType<B> create() {
+        return new BlockEntityType<>(
+                this.supplier,
+                this.validBlocks
+                        .stream()
+                        .map(Supplier::get)
+                        .collect(Collectors.toSet()),
+                null
         );
+    }
+
+    @Override
+    public @NotNull BlockEntityRegisteringEntry<B> register() {
+        return (BlockEntityRegisteringEntry<B>) super.register();
+    }
+
+    @Override
+    public @NotNull BlockEntityRegisteringBuilder<P, B> self() {
+        return this;
     }
 }

@@ -2,45 +2,35 @@ package xyz.brassgoggledcoders.shadyskies.registering.simple;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import xyz.brassgoggledcoders.shadyskies.registering.IRegisteringBuilder;
+import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.shadyskies.registering.Registering;
+import xyz.brassgoggledcoders.shadyskies.registering.RegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.RegisteringEntry;
 
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public class SimpleBuildingRegisteringBuilder<R, T extends R> implements IRegisteringBuilder<RegisteringEntry<T, R>> {
+public class SimpleBuildingRegisteringBuilder<P, R, T extends R> extends RegisteringBuilder<P, SimpleBuildingRegisteringBuilder<P, R, T>, R, T> {
+    private final Supplier<T> simpleSupplier;
 
-    private final Registering registering;
-    private final String name;
-
-    private ResourceKey<? extends Registry<R>> registryKey;
-    private Supplier<T> simpleSupplier;
-
-    public SimpleBuildingRegisteringBuilder(Registering registering, String name) {
-        this.registering = registering;
-        this.name = name;
+    public SimpleBuildingRegisteringBuilder(Registering registering, P parent, String name,
+                                            ResourceKey<? extends Registry<R>> registryKey, Supplier<T> simpleSupplier) {
+        super(registering, parent, name, registryKey);
+        this.simpleSupplier = Objects.requireNonNull(simpleSupplier);
     }
-
-    public SimpleBuildingRegisteringBuilder<R, T> withRegistryKey(ResourceKey<? extends Registry<R>> registryKey) {
-        this.registryKey = registryKey;
-        return this;
-    }
-
-    public SimpleBuildingRegisteringBuilder<R, T> withSupplier(Supplier<T> supplier) {
-        this.simpleSupplier = supplier;
-        return this;
-    }
-
 
     @Override
-    public RegisteringEntry<T, R> build() {
-        RegisteringEntry<T, R> registeringEntry = new RegisteringEntry<>(
-                registering.getDeferredRegister(Objects.requireNonNull(this.registryKey))
-                        .register(this.name, Objects.requireNonNull(this.simpleSupplier))
-        );
+    public @NotNull SimpleBuildingRegisteringBuilder<P, R, T> self() {
+        return this;
+    }
 
-        this.registering.addRegisteringEntry(registeringEntry);
-        return registeringEntry;
+    @Override
+    protected @NotNull T create() {
+        return this.simpleSupplier.get();
+    }
+
+    @Override
+    public @NotNull RegisteringEntry<T, R> register() {
+        return (RegisteringEntry<T, R>) super.register();
     }
 }

@@ -1,12 +1,16 @@
 package xyz.brassgoggledcoders.shadyskies.registering;
 
+import com.mojang.datafixers.util.Function3;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType.MenuSupplier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -15,10 +19,11 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.shadyskies.registering.block.BlockRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.blockentity.BlockEntityRegisteringBuilder;
+import xyz.brassgoggledcoders.shadyskies.registering.eventhandler.CreativeTabsRegisteringObject;
 import xyz.brassgoggledcoders.shadyskies.registering.item.ItemRegisteringBuilder;
-import xyz.brassgoggledcoders.shadyskies.registering.item.ItemRegisteringEntry;
 import xyz.brassgoggledcoders.shadyskies.registering.menu.MenuRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.simple.SimpleBuildingRegisteringBuilder;
+import xyz.brassgoggledcoders.shadyskies.registering.util.OneUseValue;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -36,36 +41,30 @@ public class Registering {
 
     private IEventBus modBus;
 
+    private final OneUseValue<String> name;
+
     public Registering(String modId) {
         this.modId = modId;
         this.deferredRegisters = new HashMap<>();
         this.registeringEntries = new ArrayList<>();
         this.registeringObjects = new ArrayList<>();
+        this.name = new OneUseValue<>();
     }
 
-    public <B extends IRegisteringBuilder<E>, E extends IRegisteringEntry<T, U>, T extends U, U> E register(
+    public <B extends IRegisteringBuilder<Registering, B, E>, E extends IRegisteringEntry<T, U>, T extends U, U> E register(
             BiFunction<Registering, String, B> builderCreator,
             String name,
             Function<B, E> building
     ) {
-        return building.apply(this.begin(builderCreator, name));
+        return building.apply(builderCreator.apply(this, name));
     }
 
-    public <B extends IRegisteringBuilder<E>, E extends IRegisteringEntry<T, U>, T extends U, U> B begin(
-            BiFunction<Registering, String, B> builderCreator,
+    public <B extends IRegisteringBuilder<P, B, E>, P, E extends IRegisteringEntry<T, U>, T extends U, U> B begin(
+            Function3<Registering, P, String, B> builderCreator,
+            P parent,
             String name
     ) {
-        return builderCreator.apply(this, name);
-    }
-
-    public <B extends IStartedRegisteringBuilder<E, W>, E extends IRegisteringEntry<T, U>, T extends U, U, W> B begin(
-            BiFunction<Registering, String, B> builderCreator,
-            String name,
-            W beginningValue
-    ) {
-        B value = builderCreator.apply(this, name);
-        value.start(beginningValue);
-        return value;
+        return builderCreator.apply(this, parent, name);
     }
 
     @SuppressWarnings("unchecked")
@@ -99,17 +98,20 @@ public class Registering {
     }
 
     public void handleCreativeTabs(BuildCreativeModeTabContentsEvent event) {
-        this.getRegisteringEntries()
-                .forEach(registeringEntry -> {
-                    if (registeringEntry instanceof ItemRegisteringEntry<?> itemRegisteringEntry) {
-                        itemRegisteringEntry.buildCreativeTab(event);
-                    }
-                });
+        Iterator<Object> registeringObjects = this.getRegisteringObjects();
+        while (registeringObjects.hasNext()) {
+            Object registeringObject = registeringObjects.next();
+            if (registeringObject instanceof CreativeTabsRegisteringObject creativeTabsRegisteringObject) {
+                creativeTabsRegisteringObject.buildCreativeTab(event);
+                registeringObjects.remove();
+            }
+        }
     }
 
     public <T> Registry<T> createRegistry(ResourceKey<? extends Registry<T>> registryKey) {
         return this.getDeferredRegister(registryKey)
-                .makeRegistry(builder -> {});
+                .makeRegistry(builder -> {
+                });
     }
 
     public void addRegisteringEntry(IRegisteringEntry<?, ?> registeringEntry) {
@@ -132,31 +134,74 @@ public class Registering {
         this.registeringObjects.clear();
     }
 
-    public <R, T extends R> RegisteringEntry<T, R> simple(String name, ResourceKey<? extends Registry<R>> registryKey, Supplier<T> supplier) {
-        return this.<R, T>simple(name)
-                .withRegistryKey(registryKey)
-                .withSupplier(supplier)
-                .build();
+    public Registering object(String name) {
+        this.name.set(name);
+        return this;
     }
 
-    public <R, T extends R> SimpleBuildingRegisteringBuilder<R, T> simple(String name) {
-        return this.begin(SimpleBuildingRegisteringBuilder::new, name);
+    public <R, T extends R> IRegisteringEntry<T, R> simple(ResourceKey<? extends Registry<R>> registryKey, Supplier<T> supplier) {
+        return new SimpleBuildingRegisteringBuilder<>(this, this, this.name.get(), registryKey, supplier)
+                .register();
     }
 
-    public <B extends Block, I extends Item> BlockRegisteringBuilder<B, I> block(String name) {
-        return this.begin(BlockRegisteringBuilder::new, name);
+    public <P, B extends Block> BlockRegisteringBuilder<P, B> block(P parent, Function<BlockBehaviour.Properties, B> blockCreator) {
+        if (parent instanceof RegisteringBuilder<?, ?, ?, ?> registeringBuilder) {
+            this.name.set(registeringBuilder.getName());
+        }
+        return new BlockRegisteringBuilder<>(
+                this,
+                parent,
+                this.name.get(),
+                blockCreator
+        );
     }
 
-    public <I extends Item> ItemRegisteringBuilder<I> item(String name) {
-        return this.begin(ItemRegisteringBuilder::new, name);
+    public <I extends Item> ItemRegisteringBuilder<Registering, I> item(Function<Item.Properties, I> itemCreator) {
+        return this.item(this, itemCreator);
     }
 
-    public <B extends BlockEntity> BlockEntityRegisteringBuilder<B> blockEntity(String name) {
-        return this.begin(BlockEntityRegisteringBuilder::new, name);
+    public <P, I extends Item> ItemRegisteringBuilder<P, I> item(P parent, Function<Item.Properties, I> itemCreator) {
+        if (parent instanceof RegisteringBuilder<?, ?, ?, ?> registeringBuilder) {
+            this.name.set(registeringBuilder.getName());
+        }
+        return new ItemRegisteringBuilder<>(
+                this,
+                parent,
+                this.name.get(),
+                itemCreator
+        );
     }
 
-    public <M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>> MenuRegisteringBuilder<M, S> menu(String name) {
-        return this.begin(MenuRegisteringBuilder::new, name);
+    public <B extends BlockEntity> BlockEntityRegisteringBuilder<Registering, B> blockEntity(BlockEntityType.BlockEntitySupplier<B> supplier) {
+        return this.blockEntity(this, supplier);
+    }
+
+    public <P, B extends BlockEntity> BlockEntityRegisteringBuilder<P, B> blockEntity(P parent, BlockEntityType.BlockEntitySupplier<B> supplier) {
+        if (parent instanceof RegisteringBuilder<?, ?, ?, ?> registeringBuilder) {
+            this.name.set(registeringBuilder.getName());
+        }
+        return new BlockEntityRegisteringBuilder<>(
+                this,
+                parent,
+                this.name.get(),
+                supplier
+        );
+    }
+
+    public <M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>> MenuRegisteringBuilder<Registering, M, S> menu(MenuSupplier<M> menuSupplier) {
+        return this.menu(this, menuSupplier);
+    }
+
+    public <P, M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>> MenuRegisteringBuilder<P, M, S> menu(P parent, MenuSupplier<M> menuSupplier) {
+        if (parent instanceof RegisteringBuilder<?, ?, ?, ?> registeringBuilder) {
+            this.name.set(registeringBuilder.getName());
+        }
+        return new MenuRegisteringBuilder<>(
+                this,
+                parent,
+                this.name.get(),
+                menuSupplier
+        );
     }
 
     public static Registering of(String modId) {

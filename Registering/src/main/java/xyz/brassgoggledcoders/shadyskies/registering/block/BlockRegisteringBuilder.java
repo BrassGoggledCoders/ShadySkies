@@ -1,108 +1,50 @@
 package xyz.brassgoggledcoders.shadyskies.registering.block;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType.BlockEntitySupplier;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import xyz.brassgoggledcoders.shadyskies.registering.IStartedRegisteringBuilder;
+import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.shadyskies.registering.Registering;
-import xyz.brassgoggledcoders.shadyskies.registering.blockentity.BlockEntityRegisteringBuilder;
-import xyz.brassgoggledcoders.shadyskies.registering.blockentity.BlockEntityRegisteringEntry;
-import xyz.brassgoggledcoders.shadyskies.registering.item.ItemRegisteringBuilder;
-import xyz.brassgoggledcoders.shadyskies.registering.item.ItemRegisteringEntry;
+import xyz.brassgoggledcoders.shadyskies.registering.RegisteringBuilder;
+import xyz.brassgoggledcoders.shadyskies.registering.item.ItemLikeEntry;
 
-import java.util.function.BiFunction;
+import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
-public class BlockRegisteringBuilder<T extends Block, I extends Item> implements IStartedRegisteringBuilder<BlockRegisteringEntry<T, I>, Function<Properties, T>> {
-    private final Registering registering;
-    private final String name;
+public class BlockRegisteringBuilder<P, T extends Block> extends RegisteringBuilder<P, BlockRegisteringBuilder<P, T>, Block, T> {
+    private final Function<Properties, T> blockConstructor;
 
-    private Function<Properties, T> blockConstructor;
     private Properties properties;
 
-    private BiFunction<ItemRegisteringBuilder<I>, Supplier<T>, ItemRegisteringBuilder<I>> itemCreator;
-    private Function<BlockEntityRegisteringBuilder<BlockEntity>, BlockEntityRegisteringBuilder<BlockEntity>> blockEntityCreator;
-
-    public BlockRegisteringBuilder(Registering registering, String name) {
-        this.registering = registering;
-        this.name = name;
+    public BlockRegisteringBuilder(Registering registering, P parent, String name, Function<Properties, T> blockConstructor) {
+        super(registering, parent, name, Registries.BLOCK);
+        this.blockConstructor = blockConstructor;
         this.properties = Properties.of();
     }
 
-    @SuppressWarnings("UnusedReturnValue")
-    public BlockRegisteringBuilder<T, I> withBlock(Function<Properties, T> blockConstructor) {
-        this.blockConstructor = blockConstructor;
-        return this;
-    }
-
-    public BlockRegisteringBuilder<T, I> withProperties(Function<Properties, Properties> modifier) {
-        this.properties = modifier.apply(properties);
-        return this;
-    }
-
-    public BlockRegisteringBuilder<T, I> withItemBuilder(BiFunction<ItemRegisteringBuilder<I>, Supplier<T>, ItemRegisteringBuilder<I>> itemCreator) {
-        this.itemCreator = itemCreator;
-        return this;
-    }
-
-    public BlockRegisteringBuilder<T, I> withBlockEntity(BlockEntitySupplier<BlockEntity> blockEntitySupplier) {
-        this.blockEntityCreator = blockEntityRegisteringBuilder -> blockEntityRegisteringBuilder.withBlockEntitySupplier(blockEntitySupplier);
+    public BlockRegisteringBuilder<P, T> withProperties(Function<Properties, Properties> propertiesFunc) {
+        this.properties = Objects.requireNonNull(propertiesFunc.apply(this.properties));
         return this;
     }
 
     @Override
-    public BlockRegisteringEntry<T, I> build() {
-        DeferredHolder<Block, T> blockHolder = registering.getDeferredRegister(Registries.BLOCK)
-                .register(this.name, () -> this.blockConstructor.apply(this.properties));
-
-        ItemRegisteringEntry<I> itemRegisteringEntry = null;
-        if (itemCreator != null) {
-            itemRegisteringEntry = registering.register(
-                    ItemRegisteringBuilder::new,
-                    this.name,
-                    itemRegisteringBuilder -> this.itemCreator.apply(itemRegisteringBuilder, blockHolder)
-                            .build()
-            );
-        }
-
-        BlockEntityRegisteringEntry<BlockEntity> blockEntityRegisteringEntry = null;
-        if (blockEntityCreator != null) {
-            blockEntityRegisteringEntry = registering.register(
-                    BlockEntityRegisteringBuilder::new,
-                    this.name,
-                    blockEntityRegisteringBuilder -> this.blockEntityCreator.apply(blockEntityRegisteringBuilder)
-                            .withValidBlocks(blockHolder)
-                            .build()
-            );
-        }
-
-
-        BlockRegisteringEntry<T, I> entry = new BlockRegisteringEntry<>(
-                blockHolder,
-                itemRegisteringEntry,
-                blockEntityRegisteringEntry
-        );
-
-        registering.addRegisteringEntry(entry);
-
-        return entry;
+    public @NotNull BlockEntry<T> register() {
+        return (BlockEntry<T>) super.register();
     }
 
     @Override
-    public void start(Function<Properties, T> starting) {
-        this.withBlock(starting);
+    public @NotNull BlockRegisteringBuilder<P, T> self() {
+        return this;
     }
 
-    public static <B1 extends Block, I1 extends Item> BlockRegisteringBuilder<B1, I1> begin(Registering registering, String name) {
-        return registering.begin(
-                BlockRegisteringBuilder::new,
-                name
-        );
+    @Override
+    protected @NotNull ItemLikeEntry<T, Block> createEntry() {
+        return new BlockEntry<>(this.createDeferredHolder());
+    }
+
+    @Override
+    protected @NotNull T create() {
+        return this.blockConstructor.apply(this.properties);
     }
 }

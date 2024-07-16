@@ -9,11 +9,11 @@ import xyz.brassgoggledcoders.shadyskies.dataregistering.loottable.LootTableHelp
 import xyz.brassgoggledcoders.shadyskies.dataregistering.provider.ProviderTypes;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.registering.DataRegisteringEntry;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.util.StringHelper;
-import xyz.brassgoggledcoders.shadyskies.registering.block.BlockRegisteringEntry;
+import xyz.brassgoggledcoders.shadyskies.registering.item.ItemLikeEntry;
 
 @SuppressWarnings("unused")
 public class BlockBasics {
-    public static <T extends BlockRegisteringEntry<U, I>, U extends Block, I extends Item> void defaultBlock(
+    public static <T extends ItemLikeEntry<U, Block>, U extends Block> void defaultBlock(
             DataRegistering dataRegistering,
             DataRegisteringEntry<T, U, Block> dataEntry
     ) {
@@ -22,7 +22,7 @@ public class BlockBasics {
         defaultBlockState(dataRegistering, dataEntry);
     }
 
-    public static <T extends BlockRegisteringEntry<U, I>, U extends Block, I extends Item> void defaultLang(
+    public static <T extends ItemLikeEntry<U, Block>, U extends Block> void defaultLang(
             DataRegistering dataRegistering,
             DataRegisteringEntry<T, U, Block> dataEntry
     ) {
@@ -38,7 +38,7 @@ public class BlockBasics {
                 );
     }
 
-    public static <T extends BlockRegisteringEntry<U, I>, U extends Block, I extends Item> void defaultLoot(
+    public static <T extends ItemLikeEntry<U, Block>, U extends Block> void defaultLoot(
             DataRegistering dataRegistering,
             DataRegisteringEntry<T, U, Block> dataEntry
     ) {
@@ -46,7 +46,7 @@ public class BlockBasics {
                 .blockLootTable(dataEntry, LootTableHelper::dropsSelf);
     }
 
-    public static <T extends BlockRegisteringEntry<U, I>, U extends Block, I extends Item> void defaultBlockState(
+    public static <T extends ItemLikeEntry<U, Block>, U extends Block> void defaultBlockState(
             DataRegistering dataRegistering,
             DataRegisteringEntry<T, U, Block> dataEntry
     ) {

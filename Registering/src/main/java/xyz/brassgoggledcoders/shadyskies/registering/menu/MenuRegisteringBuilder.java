@@ -7,68 +7,61 @@ import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.MenuType.MenuSupplier;
 import net.neoforged.fml.loading.FMLEnvironment;
-import xyz.brassgoggledcoders.shadyskies.registering.ClientSetup;
-import xyz.brassgoggledcoders.shadyskies.registering.IRegisteringBuilder;
-import xyz.brassgoggledcoders.shadyskies.registering.Registering;
+import org.jetbrains.annotations.NotNull;
+import xyz.brassgoggledcoders.shadyskies.registering.*;
 
-import java.util.Objects;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
-public class MenuRegisteringBuilder<M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>> implements IRegisteringBuilder<MenuRegisteringEntry<M>> {
-    private final Registering registering;
-    private final String name;
+public class MenuRegisteringBuilder<P, M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>>
+        extends RegisteringBuilder<P, MenuRegisteringBuilder<P, M, S>, MenuType<?>, MenuType<M>> {
+    private final MenuSupplier<M> menuSupplier;
 
-    private MenuType.MenuSupplier<M> menuSupplier;
     private FeatureFlagSet featureFlags;
-    private Supplier<Supplier<MenuScreens.ScreenConstructor<M, S>>> screenConstructor;
+    private Supplier<MenuScreens.ScreenConstructor<M, S>> screenConstructor;
 
-    public MenuRegisteringBuilder(Registering registering, String name) {
-        this.registering = registering;
-        this.name = name;
+    public MenuRegisteringBuilder(Registering registering, P parent, String name, MenuSupplier<M> menuSupplier) {
+        super(registering, parent, name, Registries.MENU);
+        this.menuSupplier = menuSupplier;
         this.featureFlags = FeatureFlags.VANILLA_SET;
     }
 
-    public MenuRegisteringBuilder<M, S> withMenuSupplier(MenuType.MenuSupplier<M> menuSupplier) {
-        this.menuSupplier = menuSupplier;
-        return this;
-    }
-
-    public MenuRegisteringBuilder<M, S> withFeatureFlags(FeatureFlagSet featureFlags) {
+    public MenuRegisteringBuilder<P, M, S> withFeatureFlags(FeatureFlagSet featureFlags) {
         this.featureFlags = featureFlags;
         return this;
     }
 
-    public MenuRegisteringBuilder<M, S> withScreenConstructor(Supplier<Supplier<MenuScreens.ScreenConstructor<M, S>>> screenConstructor) {
+    public MenuRegisteringBuilder<P, M, S> withScreenConstructor(Supplier<MenuScreens.ScreenConstructor<M, S>> screenConstructor) {
         this.screenConstructor = screenConstructor;
         return this;
     }
 
     @Override
-    public MenuRegisteringEntry<M> build() {
-        MenuRegisteringEntry<M> registeringEntry = new MenuRegisteringEntry<>(registering.getDeferredRegister(Registries.MENU)
-                .register(this.name, () -> new MenuType<>(
-                        Objects.requireNonNull(this.menuSupplier),
-                        this.featureFlags
-                ))
-        );
-
-        registering.addRegisteringEntry(registeringEntry);
+    protected void afterRegister(IRegisteringEntry<MenuType<M>, MenuType<?>> registeringEntry) {
         if (FMLEnvironment.dist.isClient()) {
-            ClientSetup.addScreenRegisteringObject(registering, registeringEntry, this.screenConstructor);
+            ClientSetup.addScreenRegisteringObject(this.getRegistering(), registeringEntry, this.screenConstructor);
         }
-
-        return registeringEntry;
     }
 
-    public static <ME extends AbstractContainerMenu, SC extends AbstractContainerScreen<ME>> MenuRegisteringBuilder<ME, SC> begin(
-            Registering registering,
-            String name
-    ) {
-        return registering.begin(
-                MenuRegisteringBuilder::new,
-                name
-        );
+    @Override
+    public @NotNull MenuRegisteringBuilder<P, M, S> self() {
+        return this;
+    }
+
+    @Override
+    protected @NotNull MenuRegisteringEntry<M> createEntry() {
+        return new MenuRegisteringEntry<>(this.createDeferredHolder());
+    }
+
+    @Override
+    public @NotNull MenuRegisteringEntry<M> register() {
+        return (MenuRegisteringEntry<M>) super.register();
+    }
+
+    @Override
+    protected @NotNull MenuType<M> create() {
+        return new MenuType<>(this.menuSupplier, this.featureFlags);
     }
 }
