@@ -10,10 +10,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Supplier;
 
 public class RegisteringEntry<T extends B, B> implements IRegisteringEntry<T, B>, Supplier<T> {
+    private final Registering registering;
     private final DeferredHolder<B, T> holder;
     private final ResourceKey<? extends Registry<B>> registryKey;
 
-    public RegisteringEntry(DeferredHolder<B, T> holder, ResourceKey<? extends Registry<B>> registryKey) {
+    public RegisteringEntry(Registering registering, DeferredHolder<B, T> holder, ResourceKey<? extends Registry<B>> registryKey) {
+        this.registering = registering;
         this.holder = holder;
         this.registryKey = registryKey;
     }
@@ -33,6 +35,12 @@ public class RegisteringEntry<T extends B, B> implements IRegisteringEntry<T, B>
     @Override
     public ResourceKey<? extends Registry<B>> registryKey() {
         return registryKey;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T2, B2> IRegisteringEntry<T2, B2> getSibling(ResourceKey<? extends Registry<B2>> registryKey) {
+        return (IRegisteringEntry<T2, B2>) this.registering.getRegisteringEntry(registryKey, this.getName());
     }
 
     @Override

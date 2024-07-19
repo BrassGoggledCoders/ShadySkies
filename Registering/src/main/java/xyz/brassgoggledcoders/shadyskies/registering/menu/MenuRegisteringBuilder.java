@@ -52,7 +52,7 @@ public class MenuRegisteringBuilder<P, M extends AbstractContainerMenu, S extend
 
     @Override
     protected @NotNull MenuRegisteringEntry<M> createEntry() {
-        return new MenuRegisteringEntry<>(this.createDeferredHolder());
+        return new MenuRegisteringEntry<>(this.getRegistering(), this.createDeferredHolder());
     }
 
     @Override

@@ -80,4 +80,14 @@ public class ItemRegisteringBuilder<P, I extends Item> extends RegisteringBuilde
     public @NotNull ItemRegisteringBuilder<P, I> self() {
         return this;
     }
+
+    @Override
+    protected @NotNull IRegisteringEntry<I, Item> createEntry() {
+        return new ItemEntry<>(this.getRegistering(), this.createDeferredHolder());
+    }
+
+    @Override
+    public @NotNull ItemEntry<I> register() {
+        return (ItemEntry<I>) super.register();
+    }
 }

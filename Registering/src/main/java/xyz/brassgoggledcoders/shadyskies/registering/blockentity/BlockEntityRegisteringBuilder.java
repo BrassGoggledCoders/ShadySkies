@@ -41,7 +41,7 @@ public class BlockEntityRegisteringBuilder<P, B extends BlockEntity> extends Reg
 
     @Override
     protected @NotNull BlockEntityRegisteringEntry<B> createEntry() {
-        return new BlockEntityRegisteringEntry<>(this.createDeferredHolder());
+        return new BlockEntityRegisteringEntry<>(this.getRegistering(), this.createDeferredHolder());
     }
 
 

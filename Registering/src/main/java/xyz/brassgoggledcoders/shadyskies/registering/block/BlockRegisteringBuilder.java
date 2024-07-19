@@ -57,8 +57,8 @@ public class BlockRegisteringBuilder<P, T extends Block> extends RegisteringBuil
     }
 
     @Override
-    protected @NotNull ItemLikeEntry<T, Block> createEntry() {
-        return new BlockEntry<>(this.createDeferredHolder());
+    protected @NotNull BlockEntry<T> createEntry() {
+        return new BlockEntry<>(this.getRegistering(), this.createDeferredHolder());
     }
 
     @Override
@@ -67,7 +67,7 @@ public class BlockRegisteringBuilder<P, T extends Block> extends RegisteringBuil
     }
 
     @SuppressWarnings("unchecked")
-    private final T getBlock() {
+    private T getBlock() {
         return (T) this.getRegistering()
                 .getRegisteringEntry(this.getRegistryKey(), this.getName())
                 .get();

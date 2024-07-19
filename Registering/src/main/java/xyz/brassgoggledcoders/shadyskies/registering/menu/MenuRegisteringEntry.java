@@ -6,10 +6,11 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import xyz.brassgoggledcoders.shadyskies.registering.Registering;
 import xyz.brassgoggledcoders.shadyskies.registering.RegisteringEntry;
 
 public class MenuRegisteringEntry<M extends AbstractContainerMenu> extends RegisteringEntry<MenuType<M>, MenuType<?>> {
-    public MenuRegisteringEntry(DeferredHolder<MenuType<?>, MenuType<M>> deferredHolder) {
-        super(deferredHolder, Registries.MENU);
+    public MenuRegisteringEntry(Registering registering, DeferredHolder<MenuType<?>, MenuType<M>> deferredHolder) {
+        super(registering, deferredHolder, Registries.MENU);
     }
 }

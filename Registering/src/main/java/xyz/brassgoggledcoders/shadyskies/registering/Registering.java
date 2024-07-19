@@ -1,9 +1,13 @@
 package xyz.brassgoggledcoders.shadyskies.registering;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import com.mojang.datafixers.util.Function3;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType.MenuSupplier;
 import net.minecraft.world.item.Item;
@@ -19,12 +23,15 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.shadyskies.registering.block.BlockRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.blockentity.BlockEntityRegisteringBuilder;
+import xyz.brassgoggledcoders.shadyskies.registering.entity.EntityBuilder;
+import xyz.brassgoggledcoders.shadyskies.registering.entity.EntityEntry;
 import xyz.brassgoggledcoders.shadyskies.registering.eventhandler.CreativeTabsRegisteringObject;
 import xyz.brassgoggledcoders.shadyskies.registering.item.ItemRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.menu.MenuRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.simple.SimpleBuildingRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.util.OneUseValue;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -35,7 +42,7 @@ public class Registering {
     private final String modId;
 
     private final Map<ResourceKey<? extends Registry<?>>, DeferredRegister<?>> deferredRegisters;
-    private final List<IRegisteringEntry<?, ?>> registeringEntries;
+    private final Table<ResourceKey<? extends Registry<?>>, String, IRegisteringEntry<?, ?>> registeringEntries;
 
     private final List<Object> registeringObjects;
 
@@ -46,17 +53,13 @@ public class Registering {
     public Registering(String modId) {
         this.modId = modId;
         this.deferredRegisters = new HashMap<>();
-        this.registeringEntries = new ArrayList<>();
+        this.registeringEntries = HashBasedTable.create();
         this.registeringObjects = new ArrayList<>();
         this.name = new OneUseValue<>();
     }
 
     public IRegisteringEntry<?, ?> getRegisteringEntry(ResourceKey<? extends Registry<?>> registry, String name) {
-        return this.getRegisteringEntries()
-                .stream()
-                .filter(registeringEntry -> registeringEntry.registryKey() == registry && registeringEntry.getId().getPath().equals(name))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No registering entry found for " + name));
+        return this.registeringEntries.get(registry, name);
     }
 
     public <B extends IRegisteringBuilder<Registering, B, E>, E extends IRegisteringEntry<T, U>, T extends U, U> E register(
@@ -123,11 +126,15 @@ public class Registering {
     }
 
     public void addRegisteringEntry(IRegisteringEntry<?, ?> registeringEntry) {
-        this.registeringEntries.add(registeringEntry);
+        this.registeringEntries.put(
+                registeringEntry.registryKey(),
+                registeringEntry.getName(),
+                registeringEntry
+        );
     }
 
-    public List<IRegisteringEntry<?, ?>> getRegisteringEntries() {
-        return this.registeringEntries;
+    public Collection<IRegisteringEntry<?, ?>> getRegisteringEntries() {
+        return this.registeringEntries.values();
     }
 
     public void addRegisteringObject(Object registeringObject) {
@@ -213,6 +220,22 @@ public class Registering {
                 parent,
                 this.name.get(),
                 menuSupplier
+        );
+    }
+
+    public <E extends Entity> EntityBuilder<Registering, E> entity(EntityType.EntityFactory<E> eEntityFactory) {
+        return this.entity(this, eEntityFactory);
+    }
+
+    public <P, E extends Entity> EntityBuilder<P, E> entity(P parent, EntityType.EntityFactory<E> eEntityFactory) {
+        if (parent instanceof RegisteringBuilder<?, ?, ?, ?> registeringBuilder) {
+            this.name.set(registeringBuilder.getName());
+        }
+        return new EntityBuilder<>(
+                this,
+                parent,
+                this.name.get(),
+                eEntityFactory
         );
     }
 

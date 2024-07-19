@@ -7,11 +7,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.NotNull;
+import xyz.brassgoggledcoders.shadyskies.registering.Registering;
 import xyz.brassgoggledcoders.shadyskies.registering.RegisteringEntry;
 
 public class ItemLikeEntry<T extends B, B> extends RegisteringEntry<T, B> implements ItemLike {
-    public ItemLikeEntry(DeferredHolder<B, T> holder, ResourceKey<? extends Registry<B>> registryKey) {
-        super(holder, registryKey);
+    public ItemLikeEntry(Registering registering, DeferredHolder<B, T> holder, ResourceKey<? extends Registry<B>> registryKey) {
+        super(registering, holder, registryKey);
     }
 
     @Override

@@ -56,7 +56,7 @@ public abstract class RegisteringBuilder<P, B extends RegisteringBuilder<P, B, R
 
     @NotNull
     protected IRegisteringEntry<T, R> createEntry() {
-        return new RegisteringEntry<>(this.createDeferredHolder(), this.registryKey);
+        return new RegisteringEntry<>(this.getRegistering(), this.createDeferredHolder(), this.registryKey);
     }
 
     protected DeferredHolder<R, T> createDeferredHolder() {
