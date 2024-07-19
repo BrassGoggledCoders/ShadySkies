@@ -1,6 +1,7 @@
 package xyz.brassgoggledcoders.shadyskies.dataregistering.provider;
 
 import xyz.brassgoggledcoders.shadyskies.dataregistering.blockstate.DeferredBlockStateProvider;
+import xyz.brassgoggledcoders.shadyskies.dataregistering.item.DeferredItemModelProvider;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.loottable.DataRegisteringLootTableProvider;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.loottable.ILootTableProvider;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.recipe.DeferredRecipeProvider;
@@ -68,6 +69,23 @@ public class ProviderTypes {
                 event.getGenerator().addProvider(event.includeServer(), tagProvider);
 
                 return tagProvider;
+            }
+    );
+
+    public static final ProviderType<DeferredProvider<DeferredItemModelProvider>> ITEM_MODELS = new DeferredProviderType<>(
+            (id, event, deferredActions) -> {
+                DeferredItemModelProvider provider = new DeferredItemModelProvider(
+                        event.getGenerator()
+                                .getPackOutput(),
+                        id,
+                        event.getExistingFileHelper(),
+                        deferredActions
+                );
+
+                event.getGenerator()
+                        .addProvider(event.includeClient(), provider);
+
+                return provider;
             }
     );
 }

@@ -6,6 +6,7 @@ import xyz.brassgoggledcoders.shadyskies.dataregistering.builder.Builder;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.builder.BuilderFactory;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.builder.BuilderRecord;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.builder.BuilderType;
+import xyz.brassgoggledcoders.shadyskies.dataregistering.provider.DeferredProvider;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.provider.DeferredProviderType;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.provider.ProviderRecord;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.provider.ProviderType;
@@ -53,6 +54,10 @@ public class DataRegistering {
     }
 
     public <T> void doWithProvider(DeferredProviderType<T> providerType, Consumer<T> consumer) {
+        this.handlers.add(new ProviderRecord<>(providerType, tDeferredProvider -> tDeferredProvider.deferred(consumer)));
+    }
+
+    public <T> void deferredWithProvider(ProviderType<DeferredProvider<T>> providerType, Consumer<T> consumer) {
         this.handlers.add(new ProviderRecord<>(providerType, tDeferredProvider -> tDeferredProvider.deferred(consumer)));
     }
 

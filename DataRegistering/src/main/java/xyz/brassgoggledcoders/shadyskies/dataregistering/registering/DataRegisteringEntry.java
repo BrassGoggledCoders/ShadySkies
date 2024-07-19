@@ -3,10 +3,12 @@ package xyz.brassgoggledcoders.shadyskies.dataregistering.registering;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.DataRegistering;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.builder.Builder;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.builder.BuilderType;
+import xyz.brassgoggledcoders.shadyskies.dataregistering.provider.DeferredProvider;
 import xyz.brassgoggledcoders.shadyskies.dataregistering.provider.ProviderType;
 import xyz.brassgoggledcoders.shadyskies.registering.IRegisteringEntry;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
@@ -27,6 +29,16 @@ public class DataRegisteringEntry<T extends IRegisteringEntry<U, V>, U extends V
         return this;
     }
 
+    public <P> DataRegisteringEntry<T, U, V> withDeferredProvider(
+            ProviderType<DeferredProvider<P>> providerType,
+            BiConsumer<T, P> data
+    ) {
+        dataRegistering.doWithProvider(providerType, (provider) -> provider.deferred(
+                deferred -> data.accept(this.registeringEntry, deferred)
+        ));
+        return this;
+    }
+
     public <P extends Builder> DataRegisteringEntry<T, U, V> withBuilder(
             BuilderType<P> builderType,
             BiConsumer<T, P> builder) {
@@ -35,6 +47,15 @@ public class DataRegisteringEntry<T extends IRegisteringEntry<U, V>, U extends V
                 this.registeringEntry.getId(),
                 theBuilder -> builder.accept(this.registeringEntry, theBuilder)
         );
+        return this;
+    }
+
+    public DataRegistering getDataRegistering() {
+        return dataRegistering;
+    }
+
+    public DataRegisteringEntry<T, U, V> withDefaults(Consumer<DataRegisteringEntry<T, U, V>> consumer) {
+        dataRegistering.duringGeneration(() -> consumer.accept(this));
         return this;
     }
 
