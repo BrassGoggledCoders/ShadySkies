@@ -4,11 +4,13 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.shadyskies.registering.Registering;
 import xyz.brassgoggledcoders.shadyskies.registering.RegisteringBuilder;
-import xyz.brassgoggledcoders.shadyskies.registering.item.ItemLikeEntry;
+import xyz.brassgoggledcoders.shadyskies.registering.blockentity.BlockEntityRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.item.ItemRegisteringBuilder;
 
 import java.util.Objects;
@@ -44,6 +46,14 @@ public class BlockRegisteringBuilder<P, T extends Block> extends RegisteringBuil
     public <I extends Item> ItemRegisteringBuilder<BlockRegisteringBuilder<P, T>, I> withItem(BiFunction<T, Item.Properties, I> itemCreator) {
         return this.getRegistering()
                 .item(this, (itemProperties) -> itemCreator.apply(this.getBlock(), itemProperties));
+    }
+
+    public <BE extends BlockEntity> BlockEntityRegisteringBuilder<BlockRegisteringBuilder<P, T>, BE> withBlockEntity(
+            BlockEntityType.BlockEntitySupplier<BE> blockEntitySupplier
+    ) {
+        return this.getRegistering()
+                .blockEntity(this, blockEntitySupplier)
+                .withValidBlocks(this::getBlock);
     }
 
     @Override

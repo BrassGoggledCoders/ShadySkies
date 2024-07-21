@@ -47,6 +47,7 @@ public abstract class RegisteringBuilder<P, B extends RegisteringBuilder<P, B, R
         IRegisteringEntry<T, R> entry = this.createEntry();
         this.getRegistering()
                 .addRegisteringEntry(entry);
+        this.afterRegister(entry);
         return entry;
     }
 

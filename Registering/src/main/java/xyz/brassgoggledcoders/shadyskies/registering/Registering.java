@@ -239,6 +239,10 @@ public class Registering {
         );
     }
 
+    public String getModId() {
+        return modId;
+    }
+
     public static Registering of(String modId) {
         return new Registering(modId);
     }

@@ -17,7 +17,7 @@ public interface IRegisteringBuilder<P, B extends IRegisteringBuilder<P, B, E>, 
     @NotNull
     B self();
 
-    default <B2 extends IRegisteringBuilder<P, B2, E>> B2 transform(Function<B, B2> transform) {
+    default <P2, B2 extends IRegisteringBuilder<P2, B2, E2>, E2> B2 transform(Function<B, B2> transform) {
         return transform.apply(this.self());
     }
 }

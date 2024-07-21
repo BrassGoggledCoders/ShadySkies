@@ -54,10 +54,9 @@ public class EntityBuilder<P, E extends Entity> extends RegisteringBuilder<P, En
     }
 
     @Override
-    @SuppressWarnings("DataFlowIssue")
     protected @NotNull EntityType<E> create() {
         return EntityType.Builder.of(this.factory, this.mobCategory)
-                .build(null);
+                .build(this.getRegistering().getModId() + ":" + this.getName());
     }
 
     @Override
