@@ -16,6 +16,7 @@ import xyz.brassgoggledcoders.shadyskies.registering.RegisteringBuilder;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@SuppressWarnings("unused")
 public class EntityBuilder<P, E extends Entity> extends RegisteringBuilder<P, EntityBuilder<P, E>, EntityType<?>, EntityType<E>> {
     private final EntityType.EntityFactory<E> factory;
 
@@ -55,7 +56,7 @@ public class EntityBuilder<P, E extends Entity> extends RegisteringBuilder<P, En
 
     @Override
     protected @NotNull EntityType<E> create() {
-        return EntityType.Builder.of(this.factory, this.mobCategory)
+        return this.builderFunction.apply(EntityType.Builder.of(this.factory, this.mobCategory))
                 .build(this.getRegistering().getModId() + ":" + this.getName());
     }
 
