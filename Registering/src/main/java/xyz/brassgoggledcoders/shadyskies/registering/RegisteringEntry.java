@@ -38,6 +38,11 @@ public class RegisteringEntry<T extends B, B> implements IRegisteringEntry<T, B>
     }
 
     @Override
+    public ResourceKey<B> getKey() {
+        return this.holder.getKey();
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T2, B2> IRegisteringEntry<T2, B2> getSibling(ResourceKey<? extends Registry<B2>> registryKey) {
         return (IRegisteringEntry<T2, B2>) this.registering.getRegisteringEntry(registryKey, this.getName());

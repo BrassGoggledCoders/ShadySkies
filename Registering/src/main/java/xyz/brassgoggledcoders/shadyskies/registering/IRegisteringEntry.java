@@ -23,5 +23,7 @@ public interface IRegisteringEntry<T, B> extends Supplier<T> {
 
     ResourceKey<? extends Registry<B>> registryKey();
 
+    ResourceKey<B> getKey();
+
     <T2, B2> IRegisteringEntry<T2, B2> getSibling(ResourceKey<? extends Registry<B2>> registryKey);
 }

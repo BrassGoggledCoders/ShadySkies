@@ -16,7 +16,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -24,14 +23,12 @@ import org.jetbrains.annotations.NotNull;
 import xyz.brassgoggledcoders.shadyskies.registering.block.BlockRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.blockentity.BlockEntityRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.entity.EntityBuilder;
-import xyz.brassgoggledcoders.shadyskies.registering.entity.EntityEntry;
 import xyz.brassgoggledcoders.shadyskies.registering.eventhandler.CreativeTabsRegisteringObject;
 import xyz.brassgoggledcoders.shadyskies.registering.item.ItemRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.menu.MenuRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.simple.SimpleBuildingRegisteringBuilder;
 import xyz.brassgoggledcoders.shadyskies.registering.util.OneUseValue;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -96,7 +93,6 @@ public class Registering {
     public void setModBus(IEventBus modBus) {
         this.modBus = modBus;
 
-        this.modBus.addListener(this::finishLoad);
         for (DeferredRegister<?> deferredRegister : deferredRegisters.values()) {
             deferredRegister.register(this.modBus);
         }
@@ -114,7 +110,6 @@ public class Registering {
             Object registeringObject = registeringObjects.next();
             if (registeringObject instanceof CreativeTabsRegisteringObject creativeTabsRegisteringObject) {
                 creativeTabsRegisteringObject.buildCreativeTab(event);
-                registeringObjects.remove();
             }
         }
     }
@@ -143,10 +138,6 @@ public class Registering {
 
     public Iterator<Object> getRegisteringObjects() {
         return registeringObjects.iterator();
-    }
-
-    public void finishLoad(FMLLoadCompleteEvent event) {
-        this.registeringObjects.clear();
     }
 
     public Registering object(String name) {
