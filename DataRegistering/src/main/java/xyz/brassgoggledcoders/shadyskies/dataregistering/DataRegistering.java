@@ -20,20 +20,25 @@ import java.util.function.Consumer;
 public class DataRegistering {
     private final String id;
     private final Map<ProviderType<?>, Object> providers;
-    private final List<Consumer<DataRegistering>> handlers;
+    private final LinkedList<Consumer<DataRegistering>> handlers;
 
     private GatherDataEvent gatherDataEvent;
 
     public DataRegistering(String id) {
         this.id = id;
         this.providers = new HashMap<>();
-        this.handlers = new ArrayList<>();
+        this.handlers = new LinkedList<>();
     }
 
     public void doGeneration(GatherDataEvent gatherDataEvent) {
         this.gatherDataEvent = gatherDataEvent;
 
-        this.handlers.forEach(handler -> handler.accept(this));
+        Consumer<DataRegistering> handler = handlers.poll();
+        while (handler != null) {
+            handler.accept(this);
+
+            handler = handlers.poll();
+        }
     }
 
     public <T> T getProvider(ProviderType<T> providerType) {

@@ -33,7 +33,7 @@ public class DeferredItemModelProvider extends ItemModelProvider {
         ResourceLocation id = Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(block.asItem()));
         this.getBuilder(id.toString())
                 .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                .texture("layer0", new ResourceLocation(id.getNamespace(), "block/" + id));
+                .texture("layer0", new ResourceLocation(id.getNamespace(), "block/" + id.getPath()));
 
     }
 
