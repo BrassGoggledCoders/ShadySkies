@@ -1,53 +1,41 @@
 package xyz.brassgoggledcoders.shadyskies.vehicularcontents.api.contentcarrier;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import xyz.brassgoggledcoders.shadyskies.vehicularcontents.api.carrieddata.CarriedData;
-import xyz.brassgoggledcoders.shadyskies.vehicularcontents.api.carrieddata.EntityCarriedData;
 
-public class EntityContentCarrier implements IContentCarrier {
-    private final Entity entity;
-    private final EntityCarriedData carriedData;
+public class ItemContentCarrier implements IContentCarrier {
 
-    public EntityContentCarrier(Entity entity) {
-        this.entity = entity;
-        this.carriedData = new EntityCarriedData(this);
-    }
 
     @Override
     public Component getName() {
-        return this.entity.getName();
+        return null;
     }
 
     @Override
     public IAttachmentHolder getAttachmentHolder() {
-        return this.entity;
+        return null;
     }
 
     @Override
     public CarriedData getCarriedData() {
-        return this.carriedData;
+        return null;
     }
 
     @Override
     public Level getLevel() {
-        return this.entity.level();
+        throw new IllegalStateException("Can't get Level in ItemContentCarrier");
     }
 
     @Override
     public Vec3 getPosition() {
-        return this.entity.position();
+        throw new IllegalStateException("Can't get Level in ItemContentCarrier");
     }
 
     @Override
     public boolean isValid() {
-        return this.entity.isAlive();
-    }
-
-    public Entity getEntity() {
-        return entity;
+        return false;
     }
 }

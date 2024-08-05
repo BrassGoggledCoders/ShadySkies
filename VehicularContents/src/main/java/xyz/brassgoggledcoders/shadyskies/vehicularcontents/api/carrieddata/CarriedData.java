@@ -33,10 +33,6 @@ public abstract class CarriedData {
         this.lock = new ReentrantReadWriteLock();
     }
 
-    public <T> void define(CarriedDataAccessor<T> accessor, T value) {
-        this.define(accessor, value, false, true);
-    }
-
     public <T> void define(CarriedDataAccessor<T> accessor, T value, boolean sync, boolean save) {
         int id = accessor.id();
         if (this.itemsById.containsKey(id)) {
@@ -218,7 +214,7 @@ public abstract class CarriedData {
 
     protected abstract IContentCarrier getCarrier();
 
-    public static <T> CarriedDataAccessor<T> definedId(
+    public static <T> CarriedDataAccessor<T> defineId(
             Class<? extends ICarriedContent> clazz,
             String name,
             ICarriedDataSerializer<T> serializer

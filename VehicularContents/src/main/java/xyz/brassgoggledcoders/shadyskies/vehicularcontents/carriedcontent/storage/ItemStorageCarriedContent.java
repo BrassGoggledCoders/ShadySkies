@@ -12,8 +12,13 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.brassgoggledcoders.shadyskies.vehicularcontents.api.carriedcontent.ICarriedContent;
+import xyz.brassgoggledcoders.shadyskies.vehicularcontents.api.carrieddata.CarriedData;
+import xyz.brassgoggledcoders.shadyskies.vehicularcontents.api.carrieddata.CarriedDataAccessor;
+import xyz.brassgoggledcoders.shadyskies.vehicularcontents.api.carrieddata.CarriedDataSerializers;
 import xyz.brassgoggledcoders.shadyskies.vehicularcontents.api.contentcarrier.IContentCarrier;
 import xyz.brassgoggledcoders.shadyskies.vehicularcontents.api.menu.CarriedContainer;
 import xyz.brassgoggledcoders.shadyskies.vehicularcontents.api.menu.CarrierMenuProvider;
@@ -36,7 +41,23 @@ public record ItemStorageCarriedContent(
             BlockState.CODEC.optionalFieldOf("openState").forGetter(ItemStorageCarriedContent::openState)
     ).apply(instance, ItemStorageCarriedContent::new));
 
+    private static final CarriedDataAccessor<Integer> OPENERS = CarriedData.defineId(
+            ItemStorageCarriedContent.class,
+            "openers",
+            CarriedDataSerializers.INTEGER.get()
+    );
 
+    private static final CarriedDataAccessor<ItemStackHandler> ITEMSTACK_HANDLER = CarriedData.defineId(
+            ItemStorageCarriedContent.class,
+            "itemstack_handler",
+            CarriedDataSerializers.ITEMSTACK_HANDLER.get()
+    );
+
+    @Override
+    public void initializeData(@NotNull CarriedData data) {
+        data.define(OPENERS, 0, this.openState().isPresent(), false);
+        data.define(ITEMSTACK_HANDLER, new ItemStackHandler(this.size().getTotal()), false, true);
+    }
 
     @Override
     @Nonnull
@@ -53,6 +74,7 @@ public record ItemStorageCarriedContent(
                 return InteractionResult.SUCCESS;
             }
         }
+
         return InteractionResult.PASS;
     }
 
@@ -81,8 +103,8 @@ public record ItemStorageCarriedContent(
                 pContainerId,
                 pInventory,
                 new CarriedContainer(
-                        contentCarrier.getAttachmentHolder()
-                                .getData(VCAttachments.ITEMSTACK_HANDLER),
+                        contentCarrier.getCarriedData()
+                                .get(ITEMSTACK_HANDLER),
                         contentCarrier
                 )
         ) : null;
